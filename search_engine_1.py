@@ -59,6 +59,8 @@ class SearchEngine:
         # inverted_docs = self.load_docs_index()
         # avg_doc_len = utils.load_obj(self._config.get_savedFileMainFolder() + "\\" + "data")
 
+        self._indexer.final_inverted_idx = self.load_index("inverted_idx")
+
         if type(queries) is list:
             queries_list = queries
         else:

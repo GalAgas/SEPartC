@@ -61,8 +61,8 @@ class Searcher:
         query_as_list = self._parser.parse_sentence(query)[0]
         query_dict = self.get_query_dict(query_as_list)
         relevant_docs, query_vector = self.relevant_docs_from_posting(query_dict)
-        ranked_docs = self.ranker.rank_relevant_docs(relevant_docs, query_vector)
-        return self.ranker.retrieve_top_k(ranked_docs, k)
+        ranked_docs = self._ranker.rank_relevant_docs(relevant_docs, query_vector)
+        return self._ranker.retrieve_top_k(ranked_docs, k)
 
 
     # create {term : tf} for query

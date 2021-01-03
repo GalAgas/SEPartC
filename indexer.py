@@ -23,8 +23,9 @@ class Indexer:
         # docs_posting - {tweet_id : [document.unique_terms, document.tweet_date_obj, document.max_tf, document.doc_length]}
 
         self.inverted_idx = {}
-        self.final_inverted_idx = self.load_index("inverted_idx")
-        self.postingDict = {}
+        self.final_inverted_idx = None
+        # self.postingDict = {}
+        self.posting_dict = {}
         self.config = config
 
         self.all_posting = []
@@ -33,7 +34,6 @@ class Indexer:
 
         self.entities = Counter()
         self.small_big = {}
-        self.config = config
 
         # for Local Method
         self.docs_inverted = {}
@@ -348,6 +348,10 @@ class Indexer:
         # even number of sorted sublists to pair up, until there is only one.
         if len(self.all_posting) > 0:
             self.all_posting = self.all_posting[0]
+
+    def check_last(self):
+        self.save_posting()
+        self.save_doc()
 
     # Calculate idf for each term in inverted index after finish indexing
     def calculate_idf(self, N):

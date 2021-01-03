@@ -1,7 +1,6 @@
 import re
 import json
 from datetime import datetime
-
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from document import Document
