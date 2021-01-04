@@ -24,7 +24,7 @@ class Parse:
         self.stemmer = Stemmer()
         self.stop_words = stopwords.words('english')
         self.stop_words.extend([r' ', r'', r"", r"''", r'""', r'"', r"“", r"”", r"’", r"‘", r"``", r"'", r"`", '"'])
-        self.stop_words.extend(['rt', r'!', r'?', r',', r':', r';', r'(', r')', r'...', r'[', ']', r'{', '}' "'&'", '$', '.', r'\'s', '\'s', '\'d', r'\'d', r'n\'t'])
+        self.stop_words.extend(['rt', r'!', r'?', r',', r':', r';', r'(', r')', r'...', r'[', ']', r'{', '}' "'&'", '$', '.', r'\'s', '\'s', '\'d', r'\'d', r'n\'t', 'n\'t', 'h/t', r'h/t'])
         self.stop_words.extend(['1️⃣.1️⃣2️⃣'])
         self.stop_words_dict = dict.fromkeys(self.stop_words)
 
@@ -34,11 +34,9 @@ class Parse:
 
         self.url_pattern = re.compile('http\S+')
         self.url_www_pattern = re.compile("[/://?=]")
-        # TODO - fix numbers pattern
         self.numbers_pattern = re.compile(('^\d+([/|.|,]?\d+)*'))
         self.non_latin_pattern = re.compile(pattern=r'[^\x00-\x7F\x80-\xFF\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF\u2019]')
         self.dates_pattern = re.compile(r'^(?:(?:31(\/|-|\.)(?:0?[13578]|1[02]))\1|(?:(?:29|30)(\/|-|\.)(?:0?[13-9]|1[0-2])\2))(?:(?:1[6-9]|[2-9]\d)?\d{2})$|^(?:29(\/|-|\.)0?2\3(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\d|2[0-8])(\/|-|\.)(?:(?:0?[1-9])|(?:1[0-2]))\4(?:(?:1[6-9]|[2-9]\d)?\d{2})$')
-        # TODO - fix emoji to include all emojis
         self.emojis_pattern = re.compile(pattern="["
                                                 u"\U0001F600-\U0001F64F"  # emoticons
                                                 u"\U0001F300-\U0001F5FF"  # symbols & pictographs
@@ -176,7 +174,6 @@ class Parse:
         else:
             all_tokens_list.append(str(final_t))
 
-
     def parse_sentence(self, text):
         """
         This function tokenize, remove stop words and apply lower case for every word within the text
@@ -205,9 +202,10 @@ class Parse:
                 entity_counter = 0
                 continue
 
+            # TODO - check that all @ not in final inverted index
             if token == '@':
                 if i < (len(text_tokens) - 1):
-                    tokenized_text.append(token + text_tokens[i + 1])
+                    # tokenized_text.append(token + text_tokens[i + 1])
                     text_tokens[i + 1] = ' ' # skip the next token
 
                     entity = ''
@@ -257,7 +255,10 @@ class Parse:
             if url_match:
                 if i+2 < len(text_tokens):
                     if text_tokens[i+2]:
-                        tokenized_text += self.parse_url(text_tokens[i+2])
+                        # tokenized_text += self.parse_url(text_tokens[i+2])
+                        parsed_url = self.parse_url(text_tokens[i+2])
+                        if parsed_url:
+                            tokenized_text += parsed_url
                         text_tokens[i + 1] = ' '  # skip the next token
                         text_tokens[i + 2] = ' '  # skip the next token
 
@@ -274,7 +275,6 @@ class Parse:
                 else:
                     # entity dict -> decide >= 2 is an entity
                     if entity_counter > 1:
-                        # self.entities.append(entity[:-1])
                         entities_set.add(entity[:-1])
                         tokenized_text.append(entity[:-1])
                         entity = ''
@@ -309,7 +309,8 @@ class Parse:
     def parse_url(self, token):
         split_url = self.url_www_pattern.split(token)
         if 't.co' in split_url or 'twitter.com' in split_url:
-            return [split_url[-1].lower()]
+            # return [split_url[-1].lower()]
+            return
         if len(split_url) > 3 and 'www.' in split_url[3]:
             split_url[3] = split_url[3][4:]
         return [t.lower() for t in split_url if (t != 'https' and t != '')]
@@ -356,9 +357,16 @@ class Parse:
         urls = self.get_urls([url, retweet_url, quote_url, retweet_quoted_urls])
         for (key, value) in urls.items():
             if value:
-                tokenized_text += self.parse_url(value)
+                # tokenized_text += self.parse_url(value)
+                parsed_url = self.parse_url(value)
+                if parsed_url:
+                    tokenized_text += parsed_url
+
             elif key:
-                tokenized_text += self.parse_url(key)
+                # tokenized_text += self.parse_url(key)
+                parsed_url = self.parse_url(key)
+                if parsed_url:
+                    tokenized_text += parsed_url
 
         all_texts = self.get_texts([full_text, quote_text, retweet_quoted_text])
         # remove urls from text, only if exist in url

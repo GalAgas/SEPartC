@@ -36,6 +36,7 @@ if __name__ == '__main__':
     bench_data_path = os.path.join('data', 'benchmark_data_train.snappy.parquet')
     bench_lbls_path = os.path.join('data', 'benchmark_lbls_train.csv')
     queries_path = os.path.join('data', 'queries_train.tsv')
+    model_dir = os.path.join('.', 'model')
 
     start = datetime.now()
     try:
@@ -60,6 +61,23 @@ if __name__ == '__main__':
             queries = pd.read_csv(os.path.join('data', 'queries_train.tsv'), sep='\t')
             logging.info("Successfully loaded queries data.")
 
+        import configuration
+        config = configuration.ConfigClass()
+        
+        # do we need to download a pretrained model?
+        model_url = config.get_model_url()
+        if model_url is not None and config.get_download_model():
+            import utils
+            dest_path = 'model.zip'
+            utils.download_file_from_google_drive(model_url, dest_path)
+            if not os.path.exists(model_dir):
+                os.mkdir(model_dir)
+            if os.path.exists(dest_path):
+                utils.unzip_file(dest_path, model_dir)
+                logging.info(f'Successfully downloaded and extracted pretrained model into {model_dir}.')
+            else:
+                logging.error('model.zip file does not exists.')
+
         # test for each search engine module
         engine_modules = ['search_engine_' + name for name in ['1', '2', 'best']]
         for engine_module in engine_modules:
@@ -70,7 +88,7 @@ if __name__ == '__main__':
                 # try importing the module
                 se = importlib.import_module(engine_module)
                 logging.info(f"Successfully imported module {engine_module}.")
-                engine = se.SearchEngine()
+                engine = se.SearchEngine(config=config)
 
                 # test building an index and doing so in <1 minute
                 build_idx_time = timeit.timeit(
@@ -81,7 +99,7 @@ if __name__ == '__main__':
                 if build_idx_time > 60:
                     logging.error('Parsing and index our *small* benchmark dataset took over a minute!')
                 # test loading precomputed model
-                engine.load_precomputed_model()
+                engine.load_precomputed_model(model_dir)
 
                 # test that we can run one query and get results in the format we expect
                 n_res, res = engine.search('bioweapon')
