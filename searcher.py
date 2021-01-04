@@ -1,5 +1,4 @@
 from ranker import Ranker
-import utils
 import numpy as np
 
 
@@ -18,34 +17,8 @@ class Searcher:
 
         self._config = self._indexer.config
 
-        # added from PartA
-        self.loaded_posting = None
-        self.loaded_posting_name = None
-        self.loaded_doc_name = None
-        self.loaded_doc = None
-
     # DO NOT MODIFY THIS SIGNATURE
     # You can change the internal implementation as you see fit.
-    # def search(self, query, k=None):
-    #     """
-    #     Executes a query over an existing index and returns the number of
-    #     relevant docs and an ordered list of search results (tweet ids).
-    #     Input:
-    #         query - string.
-    #         k - number of top results to return, default to everything.
-    #     Output:
-    #         A tuple containing the number of relevant search results, and
-    #         a list of tweet_ids where the first element is the most relavant
-    #         and the last is the least relevant result.
-    #     """
-    #     query_as_list = self._parser.parse_sentence(query)
-    #
-    #     relevant_docs = self._relevant_docs_from_posting(query_as_list)
-    #     n_relevant = len(relevant_docs)
-    #     ranked_doc_ids = Ranker.rank_relevant_docs(relevant_docs)
-    #     return n_relevant, ranked_doc_ids
-
-
     def search(self, query, k=None):
         """
         Executes a query over an existing index and returns the number of
@@ -58,12 +31,16 @@ class Searcher:
             a list of tweet_ids where the first element is the most relavant
             and the last is the least relevant result.
         """
+        # TODO- parse_sentence(query) return :tokenized_text, entities_set, small_big_dict
+        # TODO - need to check what to do with entities & small big
         query_as_list = self._parser.parse_sentence(query)[0]
         query_dict = self.get_query_dict(query_as_list)
         relevant_docs, query_vector = self.relevant_docs_from_posting(query_dict)
+        # TODO - fix n_relevant if smallest than k? return k
+        n_relevant = len(relevant_docs)
         ranked_docs = self._ranker.rank_relevant_docs(relevant_docs, query_vector)
-        return self._ranker.retrieve_top_k(ranked_docs, k)
-
+        ranked_doc_ids = self._ranker.retrieve_top_k(ranked_docs, k)
+        return n_relevant, ranked_doc_ids
 
     # create {term : tf} for query
     def get_query_dict(self, tokenized_query):
@@ -83,61 +60,30 @@ class Searcher:
 
         return query_dict
 
-
     def relevant_docs_from_posting(self, query_dict):
-
-        posting_query_dict = {}
-        for term in query_dict:
-            # we have that try because of the entities problem
-            try:
-                posting_query_dict[term] = self._indexer.final_inverted_idx[term][1]
-            except:
-                pass
-        # sort by value
-        posting_query_dict = {k: v for k, v in sorted(posting_query_dict.items(), key=lambda item: item[1])}
-
         relevant_docs = {}
         query_vector = np.zeros(len(query_dict), dtype=float)
 
-        for idx, item in enumerate(posting_query_dict.items()):
+        for idx, term in enumerate(list(query_dict.keys())):
             try:
-                term = item[0]
-                posting_name = item[1]
+                tweets_per_term = self._indexer.get_term_posting_tweets_dict(term)
 
-                # load suitable posting
-                if self.loaded_posting_name is None or self.loaded_posting_name != posting_name:
-                    self.loaded_posting = utils.load_obj(self._config.get_savedFileMainFolder() + "\\" + str(posting_name))
-                    self.loaded_posting_name = posting_name
+                if tweets_per_term is None:
+                    print()
 
-                for tup in self.loaded_posting[term]:
-                    tweet_id = tup[0]
-
+                for tweet_id, vals in tweets_per_term.items():
                     if tweet_id not in relevant_docs.keys():
                         relevant_docs[tweet_id] = np.zeros(len(query_dict), dtype=float)
 
-                    tf_tweet = tup[1]
-                    idf = self._indexer.final_inverted_idx[term][-1]
-                    relevant_docs[tweet_id][idx] = tf_tweet * idf
+                    # Wij - update tweet vector in index of term with tf-idf
+                    tf_tweet = vals[0]
+                    idf_term = self._indexer.get_term_idf(term)
+                    relevant_docs[tweet_id][idx] = tf_tweet * idf_term
 
+                    # Wiq - update query vector in index of term with tf-idf
                     tf_query = query_dict[term]
-                    query_vector[idx] = tf_query * idf
+                    query_vector[idx] = tf_query * idf_term
             except:
                 pass
+
         return relevant_docs, query_vector
-
-
-    # # feel free to change the signature and/or implementation of this function
-    # # or drop altogether.
-    # def _relevant_docs_from_posting(self, query_as_list):
-    #     """
-    #     This function loads the posting list and count the amount of relevant documents per term.
-    #     :param query_as_list: parsed query tokens
-    #     :return: dictionary of relevant documents mapping doc_id to document frequency.
-    #     """
-    #     relevant_docs = {}
-    #     for term in query_as_list:
-    #         posting_list = self._indexer.get_term_posting_list(term)
-    #         for doc_id, tf in posting_list:
-    #             df = relevant_docs.get(doc_id, 0)
-    #             relevant_docs[doc_id] = df + 1
-    #     return relevant_docs

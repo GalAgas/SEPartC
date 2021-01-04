@@ -44,4 +44,5 @@ class Ranker:
         :param k: Number of top document to return
         :return: list of relevant document
         """
-        return sorted_relevant_doc[:k]
+        top_k = sorted_relevant_doc[:k]
+        return [tup[0] for tup in top_k]

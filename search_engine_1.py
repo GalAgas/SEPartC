@@ -32,14 +32,11 @@ class SearchEngine:
                 # parse the document
                 parsed_document = self._parser.parse_doc(document)
                 self._indexer.add_new_doc(parsed_document)
-        self._indexer.check_last()
-        self._indexer.merge_sort_parallel(3)
+
+        self._indexer.entities_ans_small_big()
         self._indexer.calculate_idf(self._parser.number_of_documents)
         avg_doc_len = self._parser.total_len_docs / self._parser.number_of_documents
-        utils.save_obj(avg_doc_len, self._config.get_savedFileMainFolder() + "\\data")
-
-        utils.save_obj(self._indexer.inverted_idx, self._config.get_savedFileMainFolder() + "\\inverted_idx")
-        utils.save_obj(self._indexer.docs_inverted, self._config.get_savedFileMainFolder() + "\\docs_inverted")
+        self._indexer.save_index("inverted_idx")
 
     def main_method(self, corpus_path, output_path, stemming, queries, num_docs_to_retrieve):
 
@@ -51,15 +48,32 @@ class SearchEngine:
         self._config.set_toStem(stemming)
         self._config.set_savedFileMainFolder(output_path)
 
-        # need to change to build_index_from_parquet(self, fn)
-        self.run_engine()
+        # TODO - need to change to build_index_from_parquet(self, fn)
+        # self.run_engine()
         print("finish run engine!")
 
-        # self._indexer = self.load_index("inverted_idx")
-        # inverted_docs = self.load_docs_index()
-        # avg_doc_len = utils.load_obj(self._config.get_savedFileMainFolder() + "\\" + "data")
+        self._indexer.inverted_idx = self.load_index("inverted_idx")
 
-        self._indexer.final_inverted_idx = self.load_index("inverted_idx")
+        #######################################################################
+        # TODO - cleaning
+        # ugly_index = self._indexer.inverted_idx
+        # # remove tags
+        # for term in list(ugly_index.keys()):
+        #     if term == 'n\'t':
+        #         print()
+        #     if term.startswith('@'):
+        #         print()
+        #         del ugly_index[term]
+        #     if "/" in term:
+        #         print()
+        #     if ugly_index[term][0] == 1:
+        #         print()
+        #
+        # sorted_most_common = sorted(ugly_index.items(), key=lambda item: item[1][0], reverse=True)
+        # sorted_less_common = sorted(ugly_index.items(), key=lambda item: item[1][0])
+        # print()
+        #######################################################################
+
 
         if type(queries) is list:
             queries_list = queries
@@ -68,20 +82,14 @@ class SearchEngine:
 
         csv_data = []
         for idx, query in enumerate(queries_list):
-            relevant_returned = self.search(query, num_docs_to_retrieve)
-            # round_1 = search_and_rank_query(config, querie, inverted_index, inverted_docs, 100, avg_doc_len)
-            # local_method_ranker = local_method(config, inverted_docs, inverted_index)
-            # expanded_query = local_method_ranker.expand_query(querie, round_1)
-            # round_2 = search_and_rank_query(config, expanded_query, inverted_index, inverted_docs, num_docs_to_retrieve,
-            #                                 avg_doc_len)
-
-            for doc_tuple in relevant_returned:
-                print('tweet id: {}, score (unique common words with query): {}'.format(doc_tuple[0], doc_tuple[1]))
+            n_relevant, ranked_doc_ids = self.search(query, num_docs_to_retrieve)
+            print(n_relevant)
+            print(ranked_doc_ids)
+            print('##################################################')
 
         #     for tup in round_2:
         #         csv_data.append((idx+1, tup[0], tup[1]))
         # write_to_csv(csv_data)
-
 
     # DO NOT MODIFY THIS SIGNATURE
     # You can change the internal implementation as you see fit.
@@ -121,7 +129,7 @@ class SearchEngine:
 
     # DO NOT MODIFY THIS SIGNATURE
     # You can change the internal implementation as you see fit.
-    def load_precomputed_model(self):
+    def load_precomputed_model(self, model_dir=None):
         """
         Loads a pre-computed model (or models) so we can answer queries.
         This is where you would load models like word2vec, LSI, LDA, etc. and
@@ -129,9 +137,8 @@ class SearchEngine:
         """
         pass
 
-        # DO NOT MODIFY THIS SIGNATURE
-        # You can change the internal implementation as you see fit.
-
+    # DO NOT MODIFY THIS SIGNATURE
+    # You can change the internal implementation as you see fit.
     def search(self, query, k=None):
         """
         Executes a query over an existing index and returns the number of
