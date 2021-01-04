@@ -76,11 +76,12 @@ class Indexer:
         Input:
               fn - file name of pickled index.
         """
-        utils.save_obj(self.inverted_idx, self.config.get_savedFileMainFolder() + "\\" + fn)
+        # utils.save_obj(self.inverted_idx, self.config.get_savedFileMainFolder() + "\\" + fn)
+        utils.save_obj(self.inverted_idx, fn)
 
     # determine the final form of the saved term in inverted_index
     # small or big letter, save or del entity
-    def entities_ans_small_big(self):
+    def entities_and_small_big(self):
         for term in list(self.inverted_idx.keys()):
             # bad entity
             if term in self.entities and self.entities[term] < 2:

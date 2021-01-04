@@ -33,13 +33,12 @@ class SearchEngine:
                 parsed_document = self._parser.parse_doc(document)
                 self._indexer.add_new_doc(parsed_document)
 
-        self._indexer.entities_ans_small_big()
+        self._indexer.entities_and_small_big()
         self._indexer.calculate_idf(self._parser.number_of_documents)
-        avg_doc_len = self._parser.total_len_docs / self._parser.number_of_documents
+        # avg_doc_len = self._parser.total_len_docs / self._parser.number_of_documents
         self._indexer.save_index("inverted_idx")
 
     def main_method(self, corpus_path, output_path, stemming, queries, num_docs_to_retrieve):
-
         if num_docs_to_retrieve > 2000:
             num_docs_to_retrieve = 2000
 
@@ -51,7 +50,6 @@ class SearchEngine:
         # TODO - need to change to build_index_from_parquet(self, fn)
         # self.run_engine()
         print("finish run engine!")
-
         self._indexer.inverted_idx = self.load_index("inverted_idx")
 
         #######################################################################
@@ -73,7 +71,6 @@ class SearchEngine:
         # sorted_less_common = sorted(ugly_index.items(), key=lambda item: item[1][0])
         # print()
         #######################################################################
-
 
         if type(queries) is list:
             queries_list = queries
@@ -111,6 +108,9 @@ class SearchEngine:
             number_of_documents += 1
             # index the document data
             self._indexer.add_new_doc(parsed_document)
+        self._indexer.entities_and_small_big()
+        self._indexer.calculate_idf(self._parser.number_of_documents)
+        self._indexer.save_index("idx_bench")
         print('Finished parsing and indexing.')
 
     # DO NOT MODIFY THIS SIGNATURE
@@ -122,10 +122,6 @@ class SearchEngine:
             fn - file name of pickled index.
         """
         return self._indexer.load_index(fn)
-
-    def load_docs_index(self):
-        inverted_docs = utils.load_obj(self.config.get_savedFileMainFolder() + "\\" + "docs_inverted")
-        return inverted_docs
 
     # DO NOT MODIFY THIS SIGNATURE
     # You can change the internal implementation as you see fit.
