@@ -18,6 +18,7 @@ class SearchEngine:
         self._indexer = Indexer(self._config)
         self._model = None
 
+    # TODO - check if need to keep this func, all corpus
     def run_engine(self):
         """
         :return:
@@ -37,7 +38,10 @@ class SearchEngine:
         self._indexer.calculate_idf(self._parser.number_of_documents)
         # avg_doc_len = self._parser.total_len_docs / self._parser.number_of_documents
         self._indexer.save_index("inverted_idx")
+        # TODO - check the name of inverted_idx
+        # self._indexer.save_index("idx_bench")
 
+    # TODO - need to change the call inside to build_index_from_parquet(self, fn)
     def main_method(self, corpus_path, output_path, stemming, queries, num_docs_to_retrieve):
         if num_docs_to_retrieve > 2000:
             num_docs_to_retrieve = 2000
@@ -54,22 +58,7 @@ class SearchEngine:
 
         #######################################################################
         # TODO - cleaning
-        # ugly_index = self._indexer.inverted_idx
-        # # remove tags
-        # for term in list(ugly_index.keys()):
-        #     if term == 'n\'t':
-        #         print()
-        #     if term.startswith('@'):
-        #         print()
-        #         del ugly_index[term]
-        #     if "/" in term:
-        #         print()
-        #     if ugly_index[term][0] == 1:
-        #         print()
-        #
-        # sorted_most_common = sorted(ugly_index.items(), key=lambda item: item[1][0], reverse=True)
-        # sorted_less_common = sorted(ugly_index.items(), key=lambda item: item[1][0])
-        # print()
+        # self.test_and_clean()
         #######################################################################
 
         if type(queries) is list:
@@ -80,9 +69,9 @@ class SearchEngine:
         csv_data = []
         for idx, query in enumerate(queries_list):
             n_relevant, ranked_doc_ids = self.search(query, num_docs_to_retrieve)
-            print(n_relevant)
-            print(ranked_doc_ids)
-            print('##################################################')
+            # print(n_relevant)
+            # print(ranked_doc_ids)
+            # print('##################################################')
 
         #     for tup in round_2:
         #         csv_data.append((idx+1, tup[0], tup[1]))
@@ -135,7 +124,7 @@ class SearchEngine:
 
     # DO NOT MODIFY THIS SIGNATURE
     # You can change the internal implementation as you see fit.
-    def search(self, query, k=None):
+    def search(self, query):
         """
         Executes a query over an existing index and returns the number of
         relevant docs and an ordered list of search results.
@@ -147,9 +136,29 @@ class SearchEngine:
             and the last is the least relevant result.
         """
         searcher = Searcher(self._parser, self._indexer, model=self._model)
-        return searcher.search(query, k)
+        return searcher.search(query)
 
     def write_to_csv(tuple_list):
 
         df = pd.DataFrame(tuple_list, columns=['query', 'tweet_id', 'score'])
         df.to_csv('results.csv')
+
+    def test_and_clean(self):
+        ugly_index = self._indexer.inverted_idx
+        sorted_most_common = sorted(ugly_index.items(), key=lambda item: item[1][0], reverse=True)
+        sorted_less_common = sorted(ugly_index.items(), key=lambda item: item[1][0])
+
+        # remove tags
+        for term in list(ugly_index.keys()):
+            if term == 'n\'t':
+                print()
+            if term.startswith('@'):
+                print("kaki")
+                del ugly_index[term]
+            if "/" in term:
+                print()
+            if ugly_index[term][0] == 1:
+                print()
+            if term == '':
+                x = ugly_index[term]
+                print()

@@ -1,8 +1,6 @@
 import math
-import bisect
 from collections import Counter
 import utils
-from collections import OrderedDict
 
 
 # DO NOT MODIFY CLASS NAME
@@ -68,6 +66,7 @@ class Indexer:
         """
         return utils.load_obj(self.config.get_savedFileMainFolder() + "\\" + fn)
 
+    # TODO - fix this for tests!!
     # DO NOT MODIFY THIS SIGNATURE
     # You can change the internal implementation as you see fit.
     def save_index(self, fn):
@@ -77,6 +76,7 @@ class Indexer:
               fn - file name of pickled index.
         """
         # utils.save_obj(self.inverted_idx, self.config.get_savedFileMainFolder() + "\\" + fn)
+        # TODO - fix this for tests!!
         utils.save_obj(self.inverted_idx, fn)
 
     # determine the final form of the saved term in inverted_index

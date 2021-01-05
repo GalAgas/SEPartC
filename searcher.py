@@ -1,5 +1,6 @@
 from ranker import Ranker
 import numpy as np
+from wordnet import Wordnet
 
 
 # DO NOT MODIFY CLASS NAME
@@ -14,8 +15,8 @@ class Searcher:
         self._indexer = indexer
         self._ranker = Ranker()
         self._model = model
-
         self._config = self._indexer.config
+        self.wordnet = Wordnet()
 
     # DO NOT MODIFY THIS SIGNATURE
     # You can change the internal implementation as you see fit.
@@ -34,8 +35,15 @@ class Searcher:
         # TODO- parse_sentence(query) return :tokenized_text, entities_set, small_big_dict
         # TODO - need to check what to do with entities & small big
         query_as_list = self._parser.parse_sentence(query)[0]
-        query_dict = self.get_query_dict(query_as_list)
-        relevant_docs, query_vector = self.relevant_docs_from_posting(query_dict)
+        query_dict, max_tf_query = self.get_query_dict(query_as_list)
+
+        # with wordnet expansion
+        expanded_query_dict = self.wordnet.expand_query(query_dict, max_tf_query)
+        relevant_docs, query_vector = self.relevant_docs_from_posting(expanded_query_dict)
+
+        # without wordnet expansion
+        # relevant_docs, query_vector = self.relevant_docs_from_posting(query_dict)
+
         # TODO - fix n_relevant if smallest than k? return k
         n_relevant = len(relevant_docs)
         ranked_docs = self._ranker.rank_relevant_docs(relevant_docs, query_vector)
@@ -58,7 +66,7 @@ class Searcher:
         for term in query_dict:
             query_dict[term] /= max_tf
 
-        return query_dict
+        return query_dict, max_tf
 
     def relevant_docs_from_posting(self, query_dict):
         relevant_docs = {}
@@ -67,10 +75,8 @@ class Searcher:
         for idx, term in enumerate(list(query_dict.keys())):
             try:
                 tweets_per_term = self._indexer.get_term_posting_tweets_dict(term)
-
-                if tweets_per_term is None:
-                    print()
-
+                # if tweets_per_term is None:
+                #     print(term)
                 for tweet_id, vals in tweets_per_term.items():
                     if tweet_id not in relevant_docs.keys():
                         relevant_docs[tweet_id] = np.zeros(len(query_dict), dtype=float)

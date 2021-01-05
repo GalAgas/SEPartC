@@ -36,8 +36,9 @@ class Ranker:
             relevant_docs[tweet] = cosine_sim
         return sorted(relevant_docs.items(), key=lambda item: item[1], reverse=True)
 
+    # check what about k=none
     @staticmethod
-    def retrieve_top_k(sorted_relevant_doc, k=1):
+    def retrieve_top_k(sorted_relevant_doc, k=None):
         """
         return a list of top K tweets based on their ranking from highest to lowest
         :param sorted_relevant_doc: list of all candidates docs.

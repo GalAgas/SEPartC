@@ -23,7 +23,7 @@ class Parse:
         self.with_stem = config.get_toStem()
         self.stemmer = Stemmer()
         self.stop_words = stopwords.words('english')
-        self.stop_words.extend([r' ', r'', r"", r"''", r'""', r'"', r"“", r"”", r"’", r"‘", r"``", r"'", r"`", '"'])
+        self.stop_words.extend([r' ', r'', r"", r"''", r'""', r'"', r"“", r"”", r"’", r"‘", r"``", r"'", r"`", '"', '', r"''"])
         self.stop_words.extend(['rt', r'!', r'?', r',', r':', r';', r'(', r')', r'...', r'[', ']', r'{', '}' "'&'", '$', '.', r'\'s', '\'s', '\'d', r'\'d', r'n\'t', 'n\'t', 'h/t', r'h/t'])
         self.stop_words.extend(['1️⃣.1️⃣2️⃣'])
         self.stop_words_dict = dict.fromkeys(self.stop_words)
@@ -203,9 +203,11 @@ class Parse:
                 continue
 
             # TODO - check that all @ not in final inverted index
+            # TODO - decide if remove all or only @
             if token == '@':
                 if i < (len(text_tokens) - 1):
                     # tokenized_text.append(token + text_tokens[i + 1])
+                    # tokenized_text.append(text_tokens[i + 1])
                     text_tokens[i + 1] = ' ' # skip the next token
 
                     entity = ''
