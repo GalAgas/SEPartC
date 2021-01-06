@@ -123,8 +123,8 @@ if __name__ == '__main__':
                 if queries is not None:
                     for i, row in queries.iterrows():
                         q_id = row['query_id']
-                        # q_keywords = row['keywords']
-                        q_keywords = row['information_need']
+                        q_keywords = row['keywords']
+                        # q_keywords = row['information_need']
                         start_time = time.time()
                         q_n_res, q_res = engine.search(q_keywords)
                         end_time = time.time()

@@ -3,7 +3,6 @@ from reader import ReadFile
 from parser_module import Parse
 from indexer import Indexer
 from searcher import Searcher
-import utils
 
 
 # DO NOT CHANGE THE CLASS NAME
