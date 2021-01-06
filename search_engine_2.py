@@ -136,29 +136,9 @@ class SearchEngine:
             and the last is the least relevant result.
         """
         searcher = Searcher(self._parser, self._indexer, model=self._model)
+        searcher.set_method_type('2')
         return searcher.search(query)
 
     def write_to_csv(tuple_list):
-
         df = pd.DataFrame(tuple_list, columns=['query', 'tweet_id', 'score'])
         df.to_csv('results.csv')
-
-    def test_and_clean(self):
-        ugly_index = self._indexer.inverted_idx
-        sorted_most_common = sorted(ugly_index.items(), key=lambda item: item[1][0], reverse=True)
-        sorted_less_common = sorted(ugly_index.items(), key=lambda item: item[1][0])
-
-        # remove tags
-        for term in list(ugly_index.keys()):
-            if term == 'n\'t':
-                print()
-            if term.startswith('@'):
-                print("kaki")
-                del ugly_index[term]
-            if "/" in term:
-                print()
-            if ugly_index[term][0] == 1:
-                print()
-            if term == '':
-                x = ugly_index[term]
-                print()

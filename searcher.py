@@ -1,6 +1,7 @@
 from ranker import Ranker
 import numpy as np
 from wordnet import Wordnet
+from thesaurus import Thesaurus
 
 
 # DO NOT MODIFY CLASS NAME
@@ -16,7 +17,7 @@ class Searcher:
         self._ranker = Ranker()
         self._model = model
         self._config = self._indexer.config
-        self.wordnet = Wordnet()
+        self._method_class = None
 
     # DO NOT MODIFY THIS SIGNATURE
     # You can change the internal implementation as you see fit.
@@ -37,11 +38,11 @@ class Searcher:
         query_as_list = self._parser.parse_sentence(query)[0]
         query_dict, max_tf_query = self.get_query_dict(query_as_list)
 
-        # with wordnet expansion
-        expanded_query_dict = self.wordnet.expand_query(query_dict, max_tf_query)
+        # with wordnet\thesaurus expansion
+        expanded_query_dict = self._method_class.expand_query(query_dict, max_tf_query)
         relevant_docs, query_vector = self.relevant_docs_from_posting(expanded_query_dict)
 
-        # without wordnet expansion
+        # without wordnet\thesaurus expansion
         # relevant_docs, query_vector = self.relevant_docs_from_posting(query_dict)
 
         # TODO - fix n_relevant if smallest than k? return k
@@ -72,6 +73,11 @@ class Searcher:
         relevant_docs = {}
         query_vector = np.zeros(len(query_dict), dtype=float)
 
+        # TODO - check after new parser
+        # p_threshold = 0.2
+        # # full_cells_threshold = math.ceil(p_threshold * len(query_vector))
+        # full_cells_threshold = round(p_threshold * len(query_vector))
+
         for idx, term in enumerate(list(query_dict.keys())):
             try:
                 tweets_per_term = self._indexer.get_term_posting_tweets_dict(term)
@@ -92,4 +98,16 @@ class Searcher:
             except:
                 pass
 
+            # TODO - OPTIMIZATIONS
+            # for doc in list(relevant_docs.keys()):
+            #     if np.count_nonzero(relevant_docs[doc]) < full_cells_threshold:
+            #         del relevant_docs[doc]
+
         return relevant_docs, query_vector
+
+    def set_method_type(self, method_type):
+        if method_type == '1':
+            self._method_class = Wordnet()
+        elif method_type == '2':
+            self._method_class = Thesaurus()
+        # elif.. more methods

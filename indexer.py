@@ -65,7 +65,8 @@ class Indexer:
         Input:
             fn - file name of pickled index.
         """
-        return utils.load_obj(self.config.get_savedFileMainFolder() + "\\" + fn)
+        # return utils.load_obj(self.config.get_savedFileMainFolder() + "\\" + fn)
+        return utils.load_obj(self.config.get_savedFileMainFolder() + fn)
 
     # TODO - fix this for tests!!
     # DO NOT MODIFY THIS SIGNATURE

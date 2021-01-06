@@ -3,6 +3,10 @@ from search_engine_1 import SearchEngine
 from configuration import ConfigClass
 
 
+from nltk.corpus import lin_thesaurus as thesaurus
+
+
+
 from nltk.corpus import wordnet
 
 if __name__ == '__main__':
@@ -17,3 +21,6 @@ if __name__ == '__main__':
     se_1.main_method(corpus_path, output_path, stemming, queries, num_docs_to_retrieve)
 
     # search_engine_best.main()
+
+
+

@@ -137,17 +137,15 @@ class SearchEngine:
             and the last is the least relevant result.
         """
         searcher = Searcher(self._parser, self._indexer, model=self._model)
+        searcher.set_method_type('1')
         return searcher.search(query)
 
     def write_to_csv(tuple_list):
-
         df = pd.DataFrame(tuple_list, columns=['query', 'tweet_id', 'score'])
         df.to_csv('results.csv')
 
     def test_and_clean(self):
-
         for term in list(self._indexer.inverted_idx.keys()):
             # TODO - make statistics
             if self._indexer.inverted_idx[term][0] <= 100:
                 del self._indexer.inverted_idx[term]
-
