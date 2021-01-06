@@ -2,7 +2,7 @@ from ranker import Ranker
 import numpy as np
 from wordnet import Wordnet
 from thesaurus import Thesaurus
-
+from spellChecker import MySpellCheker
 
 # DO NOT MODIFY CLASS NAME
 class Searcher:

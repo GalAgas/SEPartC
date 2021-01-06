@@ -56,7 +56,7 @@ class SearchEngine:
 
         #######################################################################
         # TODO - cleaning
-        #self.test_and_clean()
+        # self.test_and_clean()
         #######################################################################
 
         if type(queries) is list:
@@ -145,7 +145,8 @@ class SearchEngine:
         df.to_csv('results.csv')
 
     def test_and_clean(self):
+
         for term in list(self._indexer.inverted_idx.keys()):
             # TODO - make statistics
-            if self._indexer.inverted_idx[term][0] <= 100:
+            if self._indexer.inverted_idx[term][0] <= 3:
                 del self._indexer.inverted_idx[term]
