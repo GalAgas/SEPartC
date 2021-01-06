@@ -1,6 +1,7 @@
 import re
 import json
 from datetime import datetime
+
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from document import Document
@@ -23,40 +24,18 @@ class Parse:
         self.with_stem = config.get_toStem()
         self.stemmer = Stemmer()
         self.stop_words = stopwords.words('english')
-        self.stop_words.extend([r' ', r'', r"", r"''", r'""', r'"', r"“", r"”", r"’", r"‘", r"``", r"'", r"`", '"', '', r"''"])
-        self.stop_words.extend(['rt', r'!', r'?', r',', r':', r';', r'(', r')', r'...', r'[', ']', r'{', '}' "'&'", '$', '.', r'\'s', '\'s', '\'d', r'\'d', r'n\'t', 'n\'t', 'h/t', r'h/t'])
-        self.stop_words.extend(['1️⃣.1️⃣2️⃣'])
+        self.stop_words.extend(['RT'])
         self.stop_words_dict = dict.fromkeys(self.stop_words)
 
         # for avg
         self.total_len_docs = 0
         self.number_of_documents = 0
 
-        self.url_pattern = re.compile('http\S+')
-        self.url_www_pattern = re.compile("[/://?=]")
+        self.url_removal_pattern = re.compile(r'(https?://[^\s]+)')
+        # TODO - fix numbers pattern
         self.numbers_pattern = re.compile(('^\d+([/|.|,]?\d+)*'))
-        self.non_latin_pattern = re.compile(pattern=r'[^\x00-\x7F\x80-\xFF\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF\u2019]')
         self.dates_pattern = re.compile(r'^(?:(?:31(\/|-|\.)(?:0?[13578]|1[02]))\1|(?:(?:29|30)(\/|-|\.)(?:0?[13-9]|1[0-2])\2))(?:(?:1[6-9]|[2-9]\d)?\d{2})$|^(?:29(\/|-|\.)0?2\3(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\d|2[0-8])(\/|-|\.)(?:(?:0?[1-9])|(?:1[0-2]))\4(?:(?:1[6-9]|[2-9]\d)?\d{2})$')
-        self.emojis_pattern = re.compile(pattern="["
-                                                u"\U0001F600-\U0001F64F"  # emoticons
-                                                u"\U0001F300-\U0001F5FF"  # symbols & pictographs
-                                                u"\U0001F680-\U0001F6FF"  # transport & map symbols
-                                                u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
-                                                u"\U00002500-\U00002BEF"  # chinese char
-                                                u"\U00010000-\U0010ffff"
-                                                u"\U0001f926-\U0001f937"
-                                                u"\U000024C2-\U0001F251"
-                                                u"\U00002702-\U000027B0"
-                                                u"\u2640-\u2642"
-                                                u"\u200d"
-                                                u"\u23cf"
-                                                u"\u23e9"
-                                                u"\u231a"
-                                                u"\ufe0f"
-                                                u"\u3030"
-                                                u"\u2600-\u2B55"
-                                                u"\uFE0F\u20E3\uFE0F\u20E3\uFE0F\u20E3"
-                                                "]+", flags=re.UNICODE)
+
 
     def parse_hashtag(self, all_tokens_list, token):
         if len(token) <= 1:
@@ -174,12 +153,20 @@ class Parse:
         else:
             all_tokens_list.append(str(final_t))
 
+    def is_cool(self, token):
+        if type(token) == int:
+            return True
+        if len(token) == 0:
+            return False
+        return all((ord(char) > 32) and (ord(char) < 128) for char in token)
+
     def parse_sentence(self, text):
         """
         This function tokenize, remove stop words and apply lower case for every word within the text
         :param text:
         :return:
         """
+
         tokenized_text = []
         text_tokens = word_tokenize(text)
         entity = ''
@@ -188,134 +175,135 @@ class Parse:
         entities_set = set()
         small_big_dict = {}
 
+        skip = False
+
+        def handle_entity(entity, entity_counter):
+            if entity_counter > 1:
+                entities_set.add(entity)
+                tokenized_text.append(entity)
+            elif entity_counter == 1:
+                if entity not in small_big_dict.keys():
+                    small_big_dict[entity.lower()] = False
+
         for i, token in enumerate(text_tokens):
 
-            if token == ' ':
+            if(skip):
+                skip = False
                 continue
 
-            # EMOJIS - extract the token without the emojis
-            if re.match(self.emojis_pattern, token):
-                token = self.emojis_pattern.sub(r'', token)
-                tokenized_text.append(token.lower())
+            if self.is_cool(token):
 
+                # if token == '@':
+                #     if i < (len(text_tokens) - 1):
+                #         tokenized_text.append(token + text_tokens[i + 1])
+                #         skip = True
+                #         ##############################################
+                #         handle_entity(entity, entity_counter)
+                #         entity = ''
+                #         entity_counter = 0
+                #         continue
+
+                if token == '#':
+                    if i < (len(text_tokens) - 1):
+                        self.parse_hashtag(tokenized_text, text_tokens[i + 1])
+                        skip = True
+                        ##############################################
+                        handle_entity(entity, entity_counter)
+                        entity = ''
+                        entity_counter = 0
+                        continue
+
+                # DATES
+                date_match = self.dates_pattern.match(token)
+                if date_match:
+                    tokenized_text.append(token)
+                    ##############################################
+                    handle_entity(entity, entity_counter)
+                    entity = ''
+                    entity_counter = 0
+
+                # NUMBERS
+                number_match = self.numbers_pattern.match(token)
+                if number_match != None:
+                    # Numbers over TR
+                    if len(token) > 18:
+                        tokenized_text.append(token)
+                        ##############################################
+                        handle_entity(entity, entity_counter)
+                        entity = ''
+                        entity_counter = 0
+
+                    start, stop = number_match.span()
+                    if (stop - start) == len(token):
+                        before_t = None
+                        after_t = None
+                        if i < (len(text_tokens) - 1):
+                            after_t = text_tokens[i + 1]
+                        if i > 0:
+                            before_t = text_tokens[i - 1]
+                        self.parse_numbers(tokenized_text, token, before_t, after_t, text_tokens)
+                        ##############################################
+                        handle_entity(entity, entity_counter)
+                        entity = ''
+                        entity_counter = 0
+                        continue
+
+                if ('.' in token) and (len(token) > 1) and any(c.isalpha() for c in token):
+                    tokenized_text.append(token)
+                    ##############################################
+                    handle_entity(entity, entity_counter)
+                    entity = ''
+                    entity_counter = 0
+                    continue
+
+                if '-' in token:
+                    tokenized_text.append(token)
+                    split_tok = [t.lower() for t in token.split('-')]
+                    tokenized_text += split_tok
+                    ##############################################
+                    handle_entity(entity, entity_counter)
+                    entity = ''
+                    entity_counter = 0
+                    continue
+
+                # ENTITY AND SMALL_BIG
+                if token.isalpha() and token not in self.stop_words_dict and token.lower() not in self.stop_words_dict:
+                    # start with big letter
+                    if token[0].isupper():
+                        entity += token + ' '
+                        entity_counter += 1
+                        tokenized_text.append(token)
+
+                        if token not in small_big_dict.keys():
+                            small_big_dict[token.lower()] = False
+                        continue
+
+                    # start with small letter
+                    else:
+                        if self.with_stem:
+                            token = self.stemmer.stem_term(token)
+                        if token not in self.stop_words_dict and len(token) > 1:
+                            tokenized_text.append(token)
+                        if token not in small_big_dict.keys() or not small_big_dict[token.lower()]:
+                            small_big_dict[token.lower()] = True
+                        ##############################################
+                        handle_entity(entity, entity_counter)
+                        entity = ''
+                        entity_counter = 0
+                        continue
+
+                handle_entity(entity, entity_counter)
                 entity = ''
                 entity_counter = 0
-                continue
-
-            # TODO - check that all @ not in final inverted index
-            # TODO - decide if remove all or only @
-            if token == '@':
-                if i < (len(text_tokens) - 1):
-                    # tokenized_text.append(token + text_tokens[i + 1])
-                    # tokenized_text.append(text_tokens[i + 1])
-                    text_tokens[i + 1] = ' ' # skip the next token
-
-                    entity = ''
-                    entity_counter = 0
-                    continue
-
-            if token == '#':
-                if i < (len(text_tokens) - 1):
-                    self.parse_hashtag(tokenized_text, text_tokens[i + 1])
-                    text_tokens[i + 1] = ' '  # skip the next token
-
-                    entity = ''
-                    entity_counter = 0
-                    continue
-
-            # DATES
-            date_match = self.dates_pattern.match(token)
-            if date_match:
-                tokenized_text.append(token)
-
-            # NUMBERS
-            # number_match = self.numbers_pattern_1.match(token) or self.numbers_pattern_2.match(token)
-            number_match = self.numbers_pattern.match(token)
-            if number_match != None:
-                # Numbers over TR
-                if len(token) > 18:
-                    tokenized_text.append(token)
-
-                    entity = ''
-                    entity_counter = 0
-                    continue
-                start, stop = number_match.span()
-                if (stop - start) == len(token):
-                    before_t = None
-                    after_t = None
-                    if i < (len(text_tokens) - 1):
-                        after_t = text_tokens[i + 1]
-                    if i > 0:
-                        before_t = text_tokens[i - 1]
-                    self.parse_numbers(tokenized_text, token, before_t, after_t, text_tokens)
-
-                    entity = ''
-                    entity_counter = 0
-                    continue
-
-            url_match = self.url_pattern.match(token)
-            if url_match:
-                if i+2 < len(text_tokens):
-                    if text_tokens[i+2]:
-                        # tokenized_text += self.parse_url(text_tokens[i+2])
-                        parsed_url = self.parse_url(text_tokens[i+2])
-                        if parsed_url:
-                            tokenized_text += parsed_url
-                        text_tokens[i + 1] = ' '  # skip the next token
-                        text_tokens[i + 2] = ' '  # skip the next token
-
-                        entity = ''
-                        entity_counter = 0
-                        continue
-
-            # ENTITY AND SMALL_BIG
-            if token.isalpha() and token.lower() not in self.stop_words_dict:
-                if token[0].isupper():
-                    entity += token + ' '
-                    entity_counter += 1
-                    continue
-                else:
-                    # entity dict -> decide >= 2 is an entity
-                    if entity_counter > 1:
-                        entities_set.add(entity[:-1])
-                        tokenized_text.append(entity[:-1])
-                        entity = ''
-                        entity_counter = 0
-                        continue
-                    # small_big dict for entity
-                    elif entity_counter == 1:
-                        entity = entity[:1]
-                        if entity not in small_big_dict.keys():
-                            small_big_dict[token.lower()] = False
-
-                    # now we have small letter token
-                    if token not in small_big_dict.keys() or not small_big_dict[token]:
-                        small_big_dict[token.lower()] = True
-
-            if '-' in token:
-                tokenized_text.append(token)
-                split_tok = [t.lower() for t in token.split('-')]
-                tokenized_text += split_tok
-                continue
-
-            # append all regular words
-            suffix = "…";
-            if self.with_stem:
-                token = self.stemmer.stem_term(token)
-            token = token.lower()
-            if token not in self.stop_words_dict and not token.endswith(suffix) and token != suffix and len(token) > 1:
-                tokenized_text.append(token)
 
         return tokenized_text, entities_set, small_big_dict
 
-    def parse_url(self, token):
-        split_url = self.url_www_pattern.split(token)
-        if 't.co' in split_url or 'twitter.com' in split_url:
-            # return [split_url[-1].lower()]
-            return
-        if len(split_url) > 3 and 'www.' in split_url[3]:
-            split_url[3] = split_url[3][4:]
-        return [t.lower() for t in split_url if (t != 'https' and t != '')]
+
+    def url_parse(self,token):
+        domain = token.split("//")[-1].split("/")[0].split('?')[0]
+        if 'www' in domain and 'com' in domain:
+            domain = domain.split('.')
+            return domain[1]
 
     def get_urls(self, all_urls):
         urls = {}
@@ -342,16 +330,11 @@ class Parse:
         tweet_date_obj = datetime.strptime(tweet_date, '%a %b %d %X %z %Y')
         full_text = doc_as_list[2]
         url = doc_as_list[3]
-        # indices = doc_as_list[4]
-        retweet_text = doc_as_list[5]
         retweet_url = doc_as_list[6]
-        # retweet_indices = doc_as_list[7]
         quote_text = doc_as_list[8]
         quote_url = doc_as_list[9]
-        # quote_indice = doc_as_list[10]
         retweet_quoted_text = doc_as_list[11]
         retweet_quoted_urls = doc_as_list[12]
-        # retweet_quoted_indices = doc_as_list[13]
         term_dict = {}
 
         tokenized_text = []
@@ -359,27 +342,16 @@ class Parse:
         urls = self.get_urls([url, retweet_url, quote_url, retweet_quoted_urls])
         for (key, value) in urls.items():
             if value:
-                # tokenized_text += self.parse_url(value)
-                parsed_url = self.parse_url(value)
-                if parsed_url:
-                    tokenized_text += parsed_url
-
-            elif key:
-                # tokenized_text += self.parse_url(key)
-                parsed_url = self.parse_url(key)
-                if parsed_url:
-                    tokenized_text += parsed_url
+                domain = self.url_parse(value)
+                if domain:
+                    tokenized_text += domain
 
         all_texts = self.get_texts([full_text, quote_text, retweet_quoted_text])
-        # remove urls from text, only if exist in url
-        if len(urls) > 0:
-            all_texts = self.url_pattern.sub('', all_texts)
-
-        all_texts = self.non_latin_pattern.sub('', all_texts)
+        # remove urls from the text
+        all_texts = self.url_removal_pattern.sub('', all_texts)
 
         tokenized_text, entities_set, small_big = self.parse_sentence(all_texts)
         unique_terms = set(tokenized_text)
-
         doc_length = len(tokenized_text)  # after text operations.
 
         max_tf = 1
@@ -395,6 +367,7 @@ class Parse:
 
         self.total_len_docs += doc_length
         self.number_of_documents += 1
+        # TODO - check if we need to save tokenized_text
         document = Document(tweet_id, max_tf, entities_set, small_big, unique_terms, tweet_date_obj, term_dict, doc_length)
 
         return document

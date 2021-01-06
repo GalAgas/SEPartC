@@ -43,8 +43,6 @@ class SearchEngine:
 
     # TODO - need to change the call inside to build_index_from_parquet(self, fn)
     def main_method(self, corpus_path, output_path, stemming, queries, num_docs_to_retrieve):
-        if num_docs_to_retrieve > 2000:
-            num_docs_to_retrieve = 2000
 
         # update configurations
         self._config.set_corpusPath(corpus_path)
@@ -58,7 +56,7 @@ class SearchEngine:
 
         #######################################################################
         # TODO - cleaning
-        # self.test_and_clean()
+        #self.test_and_clean()
         #######################################################################
 
         if type(queries) is list:
@@ -68,7 +66,7 @@ class SearchEngine:
 
         csv_data = []
         for idx, query in enumerate(queries_list):
-            n_relevant, ranked_doc_ids = self.search(query, num_docs_to_retrieve)
+            n_relevant, ranked_doc_ids = self.search(query)
             # print(n_relevant)
             # print(ranked_doc_ids)
             # print('##################################################')
@@ -98,6 +96,9 @@ class SearchEngine:
             # index the document data
             self._indexer.add_new_doc(parsed_document)
         self._indexer.entities_and_small_big()
+        ###########
+        self.test_and_clean()
+        ###########
         self._indexer.calculate_idf(self._parser.number_of_documents)
         self._indexer.save_index("idx_bench")
         print('Finished parsing and indexing.')
@@ -144,21 +145,9 @@ class SearchEngine:
         df.to_csv('results.csv')
 
     def test_and_clean(self):
-        ugly_index = self._indexer.inverted_idx
-        sorted_most_common = sorted(ugly_index.items(), key=lambda item: item[1][0], reverse=True)
-        sorted_less_common = sorted(ugly_index.items(), key=lambda item: item[1][0])
 
-        # remove tags
-        for term in list(ugly_index.keys()):
-            if term == 'n\'t':
-                print()
-            if term.startswith('@'):
-                print("kaki")
-                del ugly_index[term]
-            if "/" in term:
-                print()
-            if ugly_index[term][0] == 1:
-                print()
-            if term == '':
-                x = ugly_index[term]
-                print()
+        for term in list(self._indexer.inverted_idx.keys()):
+            # TODO - make statistics
+            if self._indexer.inverted_idx[term][0] <= 100:
+                del self._indexer.inverted_idx[term]
+

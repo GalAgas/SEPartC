@@ -6,7 +6,7 @@ from configuration import ConfigClass
 from nltk.corpus import wordnet
 
 if __name__ == '__main__':
-    corpus_path = 'C:\\Gal\\University\\Third_year\\semA\\InformationRetrieval\\SearchEngineProject\\Data\\Data\\date=07-08-2020'
+    corpus_path = 'C:\\Users\\tsysa\\Documents\\University\\3rd-year\\Data-Retrieval\\Data\\date=07-08-2020'
     output_path = 'out'
     stemming = False
     # queries = ['Dr. Anthony Fauci wrote in a 2005 paper published in Virology Journal that hydroxychloroquine was effective in treating SARS.']

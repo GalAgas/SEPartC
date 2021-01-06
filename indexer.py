@@ -34,14 +34,15 @@ class Indexer:
         # Go over each term in the doc
         for term in document_dictionary.keys():
             try:
+                term_low = term.lower()
                 # small_big
                 # term = lower case
-                if term in document.small_big_letters_dict:
-                    if term not in self.small_big.keys():
-                        self.small_big[term] = document.small_big_letters_dict[term]
+                if term_low in document.small_big_letters_dict:
+                    if term_low not in self.small_big.keys():
+                        self.small_big[term_low] = document.small_big_letters_dict[term_low]
                     else:
                         # self.small_big[term] = self.small_big[term] and document.small_big_letters_dict[term]
-                        self.small_big[term] = self.small_big[term] or document.small_big_letters_dict[term]
+                        self.small_big[term_low] = self.small_big[term_low] or document.small_big_letters_dict[term_low]
 
                 # Update inverted index and posting
                 if term not in self.inverted_idx.keys():
