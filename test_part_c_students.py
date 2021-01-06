@@ -104,6 +104,9 @@ if __name__ == '__main__':
                 # test loading precomputed model
                 engine.load_precomputed_model(model_dir)
 
+                # TODO - delete
+                # engine.test_and_clean()
+
                 # test that we can run one query and get results in the format we expect
                 n_res, res = engine.search('bioweapon')
                 if n_res is None or res is None or n_res < 1 or len(res) < 1:
@@ -120,7 +123,8 @@ if __name__ == '__main__':
                 if queries is not None:
                     for i, row in queries.iterrows():
                         q_id = row['query_id']
-                        q_keywords = row['keywords']
+                        # q_keywords = row['keywords']
+                        q_keywords = row['information_need']
                         start_time = time.time()
                         q_n_res, q_res = engine.search(q_keywords)
                         end_time = time.time()
