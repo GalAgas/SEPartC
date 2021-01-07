@@ -37,19 +37,6 @@ class Wordnet:
     #     return expanded_query_dict
 
 
-
-    #         syn_types = thesaurus.synonyms(term[0])
-    #         part_of_speech = term[1]
-    #         if part_of_speech.startswith('V'):
-    #             type = syn_types[2]
-    #         elif part_of_speech.startswith('J'):
-    #             type = syn_types[0]
-    #         else:
-    #             type = syn_types[1]
-    #
-    #         if len(type[1]) > 0:
-    #             chosen_syn = list(type[1])[0]
-
     def get_term_synonym(self, tagged_term):
         synonym = None
         try:
