@@ -115,7 +115,7 @@ class SearchEngine:
 
         thes = Thesaurus()
         expanded_query = thes.expand_query(query_dict, max_tf_query)
-        round_1_len, round_1 = self.search_helper(expanded_query, 100, 0)
+        round_1_len, round_1 = self.search_helper(expanded_query, None, 0.4)
 
         local = LocalMethod(self._indexer)
         expanded_query_dict = local.expand_query(query_dict, max_tf_query, round_1)
@@ -141,7 +141,7 @@ class SearchEngine:
         sorted_index = sorted(self._indexer.inverted_idx_term.items(), key=lambda item: item[1][0], reverse=True)
 
         for i in range(num_of_terms):
-            print(sorted_index[i][0])
+            # print(sorted_index[i][0])
             del self._indexer.inverted_idx_term[sorted_index[i][0]]
 
         for term in list(self._indexer.inverted_idx_term.keys()):
