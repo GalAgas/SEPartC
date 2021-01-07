@@ -144,7 +144,16 @@ class SearchEngine:
         df.to_csv('results.csv')
 
     def test_and_clean(self):
-        for term in list(self._indexer.inverted_idx_term.keys()):
-            # TODO - make statistics
-            if self._indexer.inverted_idx_term[term][0] <= 1:
-                del self._indexer.inverted_idx_term[term]
+        p = 0.0005
+        num_of_terms = round(p * len(self._indexer.inverted_idx_term))
+        sorted_index = sorted(self._indexer.inverted_idx_term.items(), key=lambda item: item[1][0], reverse=True)
+
+
+        for i in range(num_of_terms):
+            print(sorted_index[i][0])
+            del self._indexer.inverted_idx_term[sorted_index[i][0]]
+
+        # for term in list(self._indexer.inverted_idx_term.keys()):
+        #     # TODO - make statistics
+        #     if self._indexer.inverted_idx_term[term][0] <= 1:
+        #         del self._indexer.inverted_idx_term[term]

@@ -37,8 +37,8 @@ class Searcher:
         # TODO - need to check what to do with entities & small big
         query_as_list = self._parser.parse_sentence(query)[0]
         query_dict, max_tf_query = self.get_query_dict(query_as_list)
-
-        # with wordnet\thesaurus expansion
+        #
+        # # with wordnet\thesaurus expansion
         expanded_query_dict = self._method_class.expand_query(query_dict, max_tf_query)
         relevant_docs, query_vector = self.relevant_docs_from_posting(expanded_query_dict)
 
@@ -74,9 +74,8 @@ class Searcher:
         query_vector = np.zeros(len(query_dict), dtype=float)
 
         # TODO - check after new parser
-        # p_threshold = 0.2
-        # # full_cells_threshold = math.ceil(p_threshold * len(query_vector))
-        # full_cells_threshold = round(p_threshold * len(query_vector))
+        p_threshold = 0.18
+        full_cells_threshold = round(p_threshold * len(query_vector))
 
         for idx, term in enumerate(list(query_dict.keys())):
             try:
@@ -99,9 +98,9 @@ class Searcher:
                 pass
 
         # TODO - OPTIMIZATIONS
-        # for doc in list(relevant_docs.keys()):
-        #     if np.count_nonzero(relevant_docs[doc]) < full_cells_threshold:
-        #         del relevant_docs[doc]
+        for doc in list(relevant_docs.keys()):
+            if np.count_nonzero(relevant_docs[doc]) < full_cells_threshold:
+                del relevant_docs[doc]
 
         return relevant_docs, query_vector
 
