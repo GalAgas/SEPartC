@@ -99,7 +99,7 @@ class SearchEngine:
         self.test_and_clean()
         ###########
         self._indexer.calculate_idf(self._parser.number_of_documents)
-        self._indexer.save_index("idx_bench")
+        self._indexer.save_index('idx_bench.pkl')
         print('Finished parsing and indexing.')
 
     # DO NOT MODIFY THIS SIGNATURE
@@ -150,7 +150,7 @@ class SearchEngine:
 
 
         for i in range(num_of_terms):
-            print(sorted_index[i][0])
+            # print(sorted_index[i][0])
             del self._indexer.inverted_idx_term[sorted_index[i][0]]
 
         for term in list(self._indexer.inverted_idx_term.keys()):

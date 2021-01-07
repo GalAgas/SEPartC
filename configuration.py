@@ -14,8 +14,8 @@ class ConfigClass:
         self.savedFileMainFolder = ''
         self.saveFilesWithStem = self.savedFileMainFolder + "/WithStem"
         self.saveFilesWithoutStem = self.savedFileMainFolder + "/WithoutStem"
-        # self.toStem = False
-        self.toStem = True
+        self.toStem = False
+        # self.toStem = True
         self.google_news_vectors_negative300_path = '../../../../GoogleNews-vectors-negative300.bin'
         self.glove_twitter_27B_25d_path = '../../../../glove.twitter.27B.25d.txt'
 

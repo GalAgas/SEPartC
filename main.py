@@ -1,4 +1,4 @@
-import search_engine_best
+import search_engine_best_thes_wordnet
 from search_engine_1 import SearchEngine
 from configuration import ConfigClass
 

@@ -64,6 +64,8 @@ class Thesaurus:
         for tagged_term in tagged_query_terms :
             term_syn = self.get_term_synonym(tagged_term)
 
+            print(term_syn)
+
             if term_syn and term_syn not in expanded_query_dict:
                 expanded_query_dict[term_syn] = 1.0/max_tf_query
         return expanded_query_dict
