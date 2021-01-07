@@ -25,7 +25,7 @@ class LocalMethod:
         for i, term in enumerate(all_unique_terms):
             # TODO - think how to fix (when we have bad entity)
             try:
-                tweets_contain_term_dict = self.inverted_term[term][0]
+                tweets_contain_term_dict = self.inverted_term[term][1]
             except Exception:
                 continue
             # create term in self.relevant_docs_per_term - {wi : {doc1:tf1, doc3:tf3},  wj: {doc2:tf2, doc3:tf3}}
@@ -51,9 +51,12 @@ class LocalMethod:
 
         for index in query_indexes:
             term_list = self.correlation_matrix[index]
-            max_index = self.normaliz(term_list, index)
-            term = all_terms[max_index]
-            query_set.add(term)
+            max_index_1, max_index_2 = self.normaliz(term_list, index)
+            # max_index_1 = self.normaliz(term_list, index)
+            term_1 = all_terms[max_index_1]
+            term_2 = all_terms[max_index_2]
+            query_set.add(term_1)
+            query_set.add(term_2)
 
         query = ' '.join(str(e) for e in query_set)
         return query
@@ -74,7 +77,8 @@ class LocalMethod:
         norm_before_sort[j] = 0
         norm = norm_before_sort.copy()
         norm.sort(reverse=True)
-        return norm_before_sort.index(norm[0])
+        # return norm_before_sort.index(norm[0])
+        return norm_before_sort.index(norm[0]), norm_before_sort.index(norm[1])
 
     def calculate_Cij(self, wi_tf_dict, wj_tf_dict):
         cij = 0

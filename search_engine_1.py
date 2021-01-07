@@ -33,7 +33,7 @@ class SearchEngine:
                 parsed_document = self._parser.parse_doc(document)
                 self._indexer.add_new_doc(parsed_document)
 
-        self._indexer.entities_and_small_big()
+        # self._indexer.entities_and_small_big()
         self._indexer.calculate_idf(self._parser.number_of_documents)
         # avg_doc_len = self._parser.total_len_docs / self._parser.number_of_documents
         # self._indexer.save_index("inverted_idx")
@@ -49,7 +49,7 @@ class SearchEngine:
         self._config.set_savedFileMainFolder(output_path)
 
         # TODO - need to change to build_index_from_parquet(self, fn)
-        # self.run_engine()
+        self.run_engine()
         print("finish run engine!")
         self._indexer.inverted_idx = self.load_index("inverted_idx")
 
