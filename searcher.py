@@ -2,7 +2,7 @@ from ranker import Ranker
 import numpy as np
 from wordnet import Wordnet
 from thesaurus import Thesaurus
-from spellChecker import MySpellCheker
+from localMethod import LocalMethod
 
 # DO NOT MODIFY CLASS NAME
 class Searcher:
@@ -110,4 +110,6 @@ class Searcher:
             self._method_class = Wordnet()
         elif method_type == '2':
             self._method_class = Thesaurus()
+        elif method_type == '3':
+            self._method_class = LocalMethod(self._indexer)
         # elif.. more methods

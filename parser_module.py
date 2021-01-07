@@ -36,7 +36,7 @@ class Parse:
         self.numbers_pattern = re.compile(('^\d+([/|.|,]?\d+)*'))
         self.dates_pattern = re.compile(r'^(?:(?:31(\/|-|\.)(?:0?[13578]|1[02]))\1|(?:(?:29|30)(\/|-|\.)(?:0?[13-9]|1[0-2])\2))(?:(?:1[6-9]|[2-9]\d)?\d{2})$|^(?:29(\/|-|\.)0?2\3(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\d|2[0-8])(\/|-|\.)(?:(?:0?[1-9])|(?:1[0-2]))\4(?:(?:1[6-9]|[2-9]\d)?\d{2})$')
 
-
+    # i changed this for more informative words (still in comments)
     def parse_hashtag(self, all_tokens_list, token):
         if len(token) <= 1:
             return
@@ -44,16 +44,19 @@ class Parse:
         t = []
         # --> #stay_at_home
         if '_' in token:
-            t.append('#' + re.sub(r'_', '', token))
-            t += re.split(r'_', token)
+            # t.append('#' + re.sub(r'_', '', token))
+             t += re.split(r'_', token)
+             t.remove('')
         else:
             # --> #stayAtHome
             if not token.isupper():
-                t.append('#' + token)
+                # t.append(token)
+                # t.append('#' + token)
                 t += re.findall('[A-Z][^A-Z]*', token)
             # --> #ASD
             else:
-                all_tokens_list.append('#' + token)
+                # all_tokens_list.append('#' + token)
+                all_tokens_list.append(token)
                 return
 
         t = [x.lower() for x in t]
