@@ -13,7 +13,7 @@ class Indexer:
         # inverted_idx - {term: [df, {tweet_id:[norm_tf,tf, max_tf?, doc_len]}, ,idf]}
 
 
-        # inverted_idx_term - {term:[{document.tweet_id: [normalized_tf, tf]}, idf]}
+        # inverted_idx_term - {term:[df, {document.tweet_id: [normalized_tf, tf]}, idf]}
         # tweets_posting - {tweet_id : [document.unique_terms, document.tweet_date_obj, document.max_tf, document.doc_length]}
 
 
@@ -52,15 +52,17 @@ class Indexer:
                 else:
                     self.small_big[term_low] = self.small_big[term_low] or document.small_big_letters_dict[term_low]
 
+            # Update inverted index and posting
+            if term not in self.inverted_idx_term.keys():
+                self.inverted_idx_term[term] = [1, {}]
+            else:
+                self.inverted_idx_term[term][0] += 1
+
             tf = document_dictionary[term]
             normalized_tf = tf/document.max_tf
 
-            if term not in self.inverted_idx_term.keys():
-                self.inverted_idx_term[term] = [{}]
-                self.inverted_idx_term[term][0][document.tweet_id] = [normalized_tf, tf]
-            else:
-                dict = {document.tweet_id:[normalized_tf, tf]}
-                self.inverted_idx_term[term][0].update(dict)
+            self.inverted_idx_term[term][1][document.tweet_id] = [normalized_tf, tf]
+            self.inverted_idx_term[term][1][document.tweet_id] = [normalized_tf, tf]
 
 
     # DO NOT MODIFY THIS SIGNATURE
@@ -103,13 +105,13 @@ class Indexer:
                 del self.inverted_idx_term[lower_term]
 
     # Calculate idf for each term in inverted index after finish indexing
-    def calculate_idf(self, num):
-        for value in self.inverted_idx_term.values():
-            value.append(math.log2(num / len(value[0])))
+    def calculate_idf(self, N):
+        for val in self.inverted_idx_term.values():
+            val.append(math.log2(N/val[0]))
 
     def get_term_posting_tweets_dict(self, term):
         if term and term in self.inverted_idx_term:
-            return self.inverted_idx_term[term][0]
+            return self.inverted_idx_term[term][1]
 
     def get_term_idf(self, term):
         if term and term in self.inverted_idx_term:

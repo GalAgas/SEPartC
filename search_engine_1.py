@@ -3,7 +3,6 @@ from reader import ReadFile
 from parser_module import Parse
 from indexer import Indexer
 from searcher import Searcher
-import utils
 
 
 # DO NOT CHANGE THE CLASS NAME
@@ -37,9 +36,9 @@ class SearchEngine:
         self._indexer.entities_and_small_big()
         self._indexer.calculate_idf(self._parser.number_of_documents)
         # avg_doc_len = self._parser.total_len_docs / self._parser.number_of_documents
-        self._indexer.save_index("inverted_idx")
+        # self._indexer.save_index("inverted_idx")
         # TODO - check the name of inverted_idx
-        # self._indexer.save_index("idx_bench")
+        self._indexer.save_index("idx_bench")
 
     # TODO - need to change the call inside to build_index_from_parquet(self, fn)
     def main_method(self, corpus_path, output_path, stemming, queries, num_docs_to_retrieve):
@@ -147,5 +146,5 @@ class SearchEngine:
     def test_and_clean(self):
         for term in list(self._indexer.inverted_idx_term.keys()):
             # TODO - make statistics
-            if len(self._indexer.inverted_idx_term[term]) <= 1:
+            if self._indexer.inverted_idx_term[term][0] <= 1:
                 del self._indexer.inverted_idx_term[term]
