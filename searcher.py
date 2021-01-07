@@ -98,10 +98,10 @@ class Searcher:
             except:
                 pass
 
-            # TODO - OPTIMIZATIONS
-            # for doc in list(relevant_docs.keys()):
-            #     if np.count_nonzero(relevant_docs[doc]) < full_cells_threshold:
-            #         del relevant_docs[doc]
+        # TODO - OPTIMIZATIONS
+        # for doc in list(relevant_docs.keys()):
+        #     if np.count_nonzero(relevant_docs[doc]) < full_cells_threshold:
+        #         del relevant_docs[doc]
 
         return relevant_docs, query_vector
 
