@@ -18,7 +18,12 @@ class LocalMethod:
         all_unique_terms = set()
         relevent_tweets_id = {}
         for tup in round_1:
-            unique_terms = self.inverted_docs[tup[0]][0]
+            #local
+            try:
+                unique_terms = self.inverted_docs[tup[0]][0]
+            # others
+            except Exception:
+                unique_terms = self.inverted_docs[tup][0]
             all_unique_terms.update(unique_terms)
 
 
