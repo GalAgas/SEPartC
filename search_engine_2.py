@@ -97,6 +97,9 @@ class SearchEngine:
             # index the document data
             self._indexer.add_new_doc(parsed_document)
         self._indexer.entities_and_small_big()
+        ###########
+        self.test_and_clean()
+        ###########
         self._indexer.calculate_idf(self._parser.number_of_documents)
         self._indexer.save_index("idx_bench")
         print('Finished parsing and indexing.')
@@ -141,3 +144,20 @@ class SearchEngine:
     def write_to_csv(tuple_list):
         df = pd.DataFrame(tuple_list, columns=['query', 'tweet_id', 'score'])
         df.to_csv('results.csv')
+
+
+
+    def test_and_clean(self):
+        p = 0.0004
+        num_of_terms = round(p * len(self._indexer.inverted_idx_term))
+        sorted_index = sorted(self._indexer.inverted_idx_term.items(), key=lambda item: item[1][0], reverse=True)
+
+
+        for i in range(num_of_terms):
+            print(sorted_index[i][0])
+            del self._indexer.inverted_idx_term[sorted_index[i][0]]
+
+        # for term in list(self._indexer.inverted_idx_term.keys()):
+        #     # TODO - make statistics
+        #     if self._indexer.inverted_idx_term[term][0] <= 1:
+        #         del self._indexer.inverted_idx_term[term]
