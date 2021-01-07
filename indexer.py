@@ -21,8 +21,8 @@ class Indexer:
         self.inverted_idx_doc = {}
 
         self.config = config
-        self.entities = Counter()
-        self.small_big = {}
+        # self.entities = Counter()
+        # self.small_big = {}
 
 
     # DO NOT MODIFY THIS SIGNATURE
@@ -39,18 +39,18 @@ class Indexer:
                                                 document.doc_length]
 
         # entities as is ->  token
-        self.entities.update(document.entities_set)
+        # self.entities.update(document.entities_set)
 
         # Go over each term in the doc
         for term in document_dictionary.keys():
             term_low = term.lower()
             # small_big
             # term = lower case
-            if term_low in document.small_big_letters_dict:
-                if term_low not in self.small_big.keys():
-                    self.small_big[term_low] = document.small_big_letters_dict[term_low]
-                else:
-                    self.small_big[term_low] = self.small_big[term_low] or document.small_big_letters_dict[term_low]
+            # if term_low in document.small_big_letters_dict:
+            #     if term_low not in self.small_big.keys():
+            #         self.small_big[term_low] = document.small_big_letters_dict[term_low]
+            #     else:
+            #         self.small_big[term_low] = self.small_big[term_low] or document.small_big_letters_dict[term_low]
 
             # Update inverted index and posting
             if term not in self.inverted_idx_term.keys():
@@ -91,18 +91,18 @@ class Indexer:
 
     # determine the final form of the saved term in inverted_index
     # small or big letter, save or del entity
-    def entities_and_small_big(self):
-        for term in list(self.inverted_idx_term.keys()):
-            # bad entity
-            if term in self.entities and self.entities[term] < 2:
-                del self.inverted_idx_term[term]
+    # def entities_and_small_big(self):
+    #     for term in list(self.inverted_idx_term.keys()):
+    #         # bad entity
+    #         if term in self.entities and self.entities[term] < 2:
+    #             del self.inverted_idx_term[term]
 
-            # only big letters
-            if term in self.small_big and not self.small_big[term]:
-                lower_term = term
-                term = term.upper()
-                self.inverted_idx_term[term] = self.inverted_idx_term[lower_term]
-                del self.inverted_idx_term[lower_term]
+            # # only big letters
+            # if term in self.small_big and not self.small_big[term]:
+            #     lower_term = term
+            #     term = term.upper()
+            #     self.inverted_idx_term[term] = self.inverted_idx_term[lower_term]
+            #     del self.inverted_idx_term[lower_term]
 
     # Calculate idf for each term in inverted index after finish indexing
     def calculate_idf(self, N):

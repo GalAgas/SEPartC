@@ -39,11 +39,11 @@ class Searcher:
         query_dict, max_tf_query = self.get_query_dict(query_as_list)
 
         # with wordnet\thesaurus expansion
-        expanded_query_dict = self._method_class.expand_query(query_dict, max_tf_query)
-        relevant_docs, query_vector = self.relevant_docs_from_posting(expanded_query_dict)
+        #expanded_query_dict = self._method_class.expand_query(query_dict, max_tf_query)
+        #relevant_docs, query_vector = self.relevant_docs_from_posting(expanded_query_dict)
 
         # without wordnet\thesaurus expansion
-        # relevant_docs, query_vector = self.relevant_docs_from_posting(query_dict)
+        relevant_docs, query_vector = self.relevant_docs_from_posting(query_dict)
 
         # TODO - fix n_relevant if smallest than k? return k
         n_relevant = len(relevant_docs)
@@ -111,5 +111,5 @@ class Searcher:
         elif method_type == '2':
             self._method_class = Thesaurus()
         elif method_type == '3':
-            self._method_class = LocalMethod(self._indexer)
+            self._method_class =  (self._indexer)
         # elif.. more methods

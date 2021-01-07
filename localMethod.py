@@ -25,7 +25,7 @@ class LocalMethod:
         for i, term in enumerate(all_unique_terms):
             # TODO - think how to fix (when we have bad entity)
             try:
-                tweets_contain_term_dict = self.inverted_term[term][0]
+                tweets_contain_term_dict = self.inverted_term[term][1]
             except Exception:
                 continue
             # create term in self.relevant_docs_per_term - {wi : {doc1:tf1, doc3:tf3},  wj: {doc2:tf2, doc3:tf3}}

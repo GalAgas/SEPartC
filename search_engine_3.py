@@ -64,7 +64,7 @@ class SearchEngine:
             number_of_documents += 1
             # index the document data
             self._indexer.add_new_doc(parsed_document)
-        self._indexer.entities_and_small_big()
+        # self._indexer.entities_and_small_big()
         ###########
         self.test_and_clean()
         ###########
@@ -177,7 +177,7 @@ class SearchEngine:
     def test_and_clean(self):
         for term in list(self._indexer.inverted_idx_term.keys()):
             # TODO - make statistics
-            if len(self._indexer.inverted_idx_term[term][0]) <= 1:
+            if self._indexer.inverted_idx_term[term][0] <= 1:
                 del self._indexer.inverted_idx_term[term]
 
     def write_to_csv(tuple_list):
