@@ -191,7 +191,7 @@ class SearchEngine:
         searcher = Searcher(self._parser, self._indexer, model=self._model)
         searcher.set_method_type('3')
 
-        round_1 = self.search_and_rank_query(query, 50)
+        round_1 = self.search_and_rank_query(query, 100)
         local = LocalMethod(self._indexer)
         expanded_query = local.expand_query(query, round_1)
         round_2 = self.search_and_rank_query(expanded_query, None)
