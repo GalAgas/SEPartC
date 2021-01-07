@@ -115,9 +115,8 @@ class SearchEngine:
         query_vector = np.zeros(len(query_dict), dtype=float)
 
         # TODO - check after new parser
-        # p_threshold = 0.2
-        # # full_cells_threshold = math.ceil(p_threshold * len(query_vector))
-        # full_cells_threshold = round(p_threshold * len(query_vector))
+        p_threshold = 0.3
+        full_cells_threshold = round(p_threshold * len(query_vector))
 
         for idx, term in enumerate(list(query_dict.keys())):
             try:
@@ -138,6 +137,11 @@ class SearchEngine:
                     query_vector[idx] = tf_query * idf_term
             except:
                 pass
+        # TODO - OPTIMIZATIONS
+        for doc in list(relevant_docs.keys()):
+            if np.count_nonzero(relevant_docs[doc]) < full_cells_threshold:
+                del relevant_docs[doc]
+
         return relevant_docs, query_vector
 
 ########################################################################################################################
@@ -175,6 +179,14 @@ class SearchEngine:
         return ranked_docs[:k]
 
     def test_and_clean(self):
+        p = 0.0005
+        num_of_terms = round(p * len(self._indexer.inverted_idx_term))
+        sorted_index = sorted(self._indexer.inverted_idx_term.items(), key=lambda item: item[1][0], reverse=True)
+
+        for i in range(num_of_terms):
+            print(sorted_index[i][0])
+            del self._indexer.inverted_idx_term[sorted_index[i][0]]
+
         for term in list(self._indexer.inverted_idx_term.keys()):
             # TODO - make statistics
             if self._indexer.inverted_idx_term[term][0] <= 1:

@@ -94,7 +94,7 @@ class SearchEngine:
             number_of_documents += 1
             # index the document data
             self._indexer.add_new_doc(parsed_document)
-        self._indexer.entities_and_small_big()
+        # self._indexer.entities_and_small_big()
         ###########
         self.test_and_clean()
         ###########
@@ -144,7 +144,7 @@ class SearchEngine:
         df.to_csv('results.csv')
 
     def test_and_clean(self):
-        p = 0.0005
+        p = 0.0008
         num_of_terms = round(p * len(self._indexer.inverted_idx_term))
         sorted_index = sorted(self._indexer.inverted_idx_term.items(), key=lambda item: item[1][0], reverse=True)
 
@@ -153,7 +153,7 @@ class SearchEngine:
             print(sorted_index[i][0])
             del self._indexer.inverted_idx_term[sorted_index[i][0]]
 
-        # for term in list(self._indexer.inverted_idx_term.keys()):
-        #     # TODO - make statistics
-        #     if self._indexer.inverted_idx_term[term][0] <= 1:
-        #         del self._indexer.inverted_idx_term[term]
+        for term in list(self._indexer.inverted_idx_term.keys()):
+            # TODO - make statistics
+            if self._indexer.inverted_idx_term[term][0] <= 1:
+                del self._indexer.inverted_idx_term[term]

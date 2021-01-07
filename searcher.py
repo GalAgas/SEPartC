@@ -74,7 +74,7 @@ class Searcher:
         query_vector = np.zeros(len(query_dict), dtype=float)
 
         # TODO - check after new parser
-        p_threshold = 0.18
+        p_threshold = 0.25
         full_cells_threshold = round(p_threshold * len(query_vector))
 
         for idx, term in enumerate(list(query_dict.keys())):
