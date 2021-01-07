@@ -46,8 +46,6 @@ class Parse:
         if '_' in token:
             # t.append('#' + re.sub(r'_', '', token))
             t += re.split(r'_', token)
-            if '' in t:
-                t.remove('')
         else:
             # --> #stayAtHome
             if not token.isupper():
@@ -61,6 +59,8 @@ class Parse:
                 return
 
         t = [x.lower() for x in t]
+        if '' in t:
+            t.remove('')
         all_tokens_list += t
 
     def parse_numbers(self, all_tokens_list, token, before_token, after_token, text_tokens):
@@ -263,6 +263,8 @@ class Parse:
                 if '-' in token:
                     tokenized_text.append(token)
                     split_tok = [t.lower() for t in token.split('-')]
+                    if '' in split_tok:
+                        split_tok.remove('')
                     tokenized_text += split_tok
                     ##############################################
                     handle_entity(entity, entity_counter)

@@ -37,10 +37,9 @@ class LocalMethod:
 
         all_terms = list(self.relevant_docs_per_term.keys())
         query_indexes = []
-        query = query
         for i in range(len(all_terms)):
             self.correlation_matrix.append([])
-            if all_terms[i] in query:
+            if all_terms[i] in query_set:
                 query_indexes.append(i)
             for j in range(len(all_terms)):
                 wi = all_terms[i]
@@ -52,28 +51,34 @@ class LocalMethod:
 
         for index in query_indexes:
             term_list = self.correlation_matrix[index]
-            max_index = self.normaliz(term_list, index)
-            query_set.add(all_terms[max_index])
+            max_index_1, max_index_2 = self.normaliz(term_list, index)
+            # max_index_1 = self.normaliz(term_list, index)
+            term_1 = all_terms[max_index_1]
+            term_2 = all_terms[max_index_2]
+            query_set.add(term_1)
+            query_set.add(term_2)
 
         query = ' '.join(str(e) for e in query_set)
         return query
 
     def normaliz(self, term_list, j):
-        norm = []
+        norm_before_sort = []
         for i in range(len(term_list)):
             devide_val = float(self.correlation_matrix[i][i]) + float(self.correlation_matrix[j][j]) - float(
                                self.correlation_matrix[i][j])
             if devide_val == 0:
-                norm.append(0)
+                norm_before_sort.append(0)
             else:
-                norm.append(float(self.correlation_matrix[i][j]) / float(
+                norm_before_sort.append(float(self.correlation_matrix[i][j]) / float(
                     (self.correlation_matrix[i][i]) + float(self.correlation_matrix[j][j]) - float(
                         self.correlation_matrix[i][j])))
 
         # remove the query term
-        norm[j] = 0
-        max_value = max(norm)
-        return norm.index(max_value)
+        norm_before_sort[j] = 0
+        norm = norm_before_sort.copy()
+        norm.sort(reverse=True)
+        # return norm_before_sort.index(norm[0])
+        return norm_before_sort.index(norm[0]), norm_before_sort.index(norm[1])
 
     def calculate_Cij(self, wi_tf_dict, wj_tf_dict):
         cij = 0

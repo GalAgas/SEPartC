@@ -105,10 +105,7 @@ class Indexer:
     # Calculate idf for each term in inverted index after finish indexing
     def calculate_idf(self, num):
         for value in self.inverted_idx_term.values():
-            value.append(math.log2(num / len(value)))
-
-        # for val in self.inverted_idx.values():
-        #     val.append(math.log2(N/val[0]))
+            value.append(math.log2(num / len(value[0])))
 
     def get_term_posting_tweets_dict(self, term):
         if term and term in self.inverted_idx_term:
