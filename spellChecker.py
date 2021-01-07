@@ -3,6 +3,9 @@ from spellchecker import SpellChecker
 
 class MySpellCheker:
 
+    def __init__(self, config=None):
+        print("RONIT")
+
     def expand_query(self, query_dict, max_tf_query):
         spell = SpellChecker()
         query_terms = list(query_dict.keys())
@@ -13,5 +16,3 @@ class MySpellCheker:
             if term != corr:
                 corr_query_dict[term] = corr
         return corr_query_dict
-
-

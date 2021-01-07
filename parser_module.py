@@ -56,7 +56,7 @@ class Parse:
                 # all_tokens_list.append('#' + token)
                 if self.with_stem:
                     token = self.stemmer.stem_term(token)
-                all_tokens_list.append(token)
+                all_tokens_list.append(token.lower())
                 return
 
         if self.with_stem:
@@ -275,7 +275,7 @@ class Parse:
                 if '-' in token and len(token) > 1:
                     if self.with_stem:
                         token = self.stemmer.stem_term(token)
-                    tokenized_text.append(token)
+                    tokenized_text.append(token.lower())
                     # split_tok = [t.lower() for t in token.split('-')]
                     # if '' in split_tok:
                     #     split_tok.remove('')
@@ -291,7 +291,7 @@ class Parse:
                     if token not in self.stop_words_dict and len(token) > 1:
                         if self.with_stem:
                             token = self.stemmer.stem_term(token)
-                        tokenized_text.append(token)
+                        tokenized_text.append(token.lower())
 
                     # start with big letter
                     # if token[0].isupper():
