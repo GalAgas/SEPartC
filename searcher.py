@@ -69,7 +69,7 @@ class Searcher:
 
         return query_dict, max_tf
 
-    def relevant_docs_from_posting(self, query_dict):
+    def relevant_docs_from_posting(self, query_dict, p=0):
         relevant_docs = {}
         query_vector = np.zeros(len(query_dict), dtype=float)
 
@@ -110,5 +110,5 @@ class Searcher:
         elif method_type == '2':
             self._method_class = Thesaurus()
         elif method_type == '3':
-            self._method_class =  (self._indexer)
+            self._method_class = LocalMethod(self._indexer)
         # elif.. more methods

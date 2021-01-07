@@ -20,6 +20,7 @@ class SearchEngine:
         self._indexer = Indexer(self._config)
         self._ranker = Ranker()
         self._model = None
+        self._searcher = Searcher(self._parser, self._indexer)
 
     # TODO - check if need to keep this func, all corpus
     def run_engine(self):
@@ -69,7 +70,7 @@ class SearchEngine:
         self.test_and_clean()
         ###########
         self._indexer.calculate_idf(self._parser.number_of_documents)
-        self._indexer.save_index("idx_bench")
+        self._indexer.save_index("idx_bench.pkl")
         print('Finished parsing and indexing.')
 
     # DO NOT MODIFY THIS SIGNATURE
@@ -92,60 +93,6 @@ class SearchEngine:
         """
         pass
 
-########################################################################################################################
-    def get_query_dict(self, tokenized_query):
-        max_tf = 1
-        query_dict = {}
-        for index, term in enumerate(tokenized_query):
-            if term not in query_dict:
-                query_dict[term] = 1
-
-            else:
-                query_dict[term] += 1
-                if query_dict[term] > max_tf:
-                    max_tf = query_dict[term]
-
-        for term in query_dict:
-            query_dict[term] /= max_tf
-
-        return query_dict, max_tf
-
-    def relevant_docs_from_posting(self, query_dict, p):
-        relevant_docs = {}
-        query_vector = np.zeros(len(query_dict), dtype=float)
-
-        # TODO - check after new parser
-        p_threshold = p
-        full_cells_threshold = round(p_threshold * len(query_vector))
-
-        for idx, term in enumerate(list(query_dict.keys())):
-            try:
-                tweets_per_term = self._indexer.get_term_posting_tweets_dict(term)
-                # if tweets_per_term is None:
-                #     print(term)
-                for tweet_id, vals in tweets_per_term.items():
-                    if tweet_id not in relevant_docs.keys():
-                        relevant_docs[tweet_id] = np.zeros(len(query_dict), dtype=float)
-
-                    # Wij - update tweet vector in index of term with tf-idf
-                    tf_tweet = vals[0]
-                    idf_term = self._indexer.get_term_idf(term)
-                    relevant_docs[tweet_id][idx] = tf_tweet * idf_term
-
-                    # Wiq - update query vector in index of term with tf-idf
-                    tf_query = query_dict[term]
-                    query_vector[idx] = tf_query * idf_term
-            except:
-                pass
-        # TODO - OPTIMIZATIONS
-        for doc in list(relevant_docs.keys()):
-            if np.count_nonzero(relevant_docs[doc]) < full_cells_threshold:
-                del relevant_docs[doc]
-
-        return relevant_docs, query_vector
-
-########################################################################################################################
-
     # DO NOT MODIFY THIS SIGNATURE
     # You can change the internal implementation as you see fit.
     def search(self, query):
@@ -159,17 +106,28 @@ class SearchEngine:
             a list of tweet_ids where the first element is the most relavant
             and the last is the least relevant result.
         """
-        searcher = Searcher(self._parser, self._indexer, model=self._model)
-        searcher.set_method_type('3')
 
-        round_1 = self.search_and_rank_query(query, 100, 0)
+        query_as_list = self._parser.parse_sentence(query)[0]
+        query_dict, max_tf_query = self._searcher.get_query_dict(query_as_list)
+
+        # round_1 = self.search_and_rank_query(query, 100, 0)
+
+        round_1_len, round_1 = self.search_helper(query_dict, 100, 0)
+        # relevant_docs, query_vector = searcher.relevant_docs_from_posting(query_dict, 0)
+        # # n_relevant = len(relevant_docs)
+        # ranked_docs = searcher._ranker.rank_relevant_docs(relevant_docs, query_vector)
+        # round_1 = searcher._ranker.retrieve_top_k(ranked_docs, 100)
+
         local = LocalMethod(self._indexer)
-        expanded_query = local.expand_query(query, round_1)
-        round_2 = self.search_and_rank_query(expanded_query, None, 0.3)
-        # n_relevant, ranked_doc_ids
-        round_2 = [seq[0] for seq in round_2]
-        return len(round_2), round_2
+        expanded_query_dict = local.expand_query(query_dict, max_tf_query, round_1)
 
+        return self.search_helper(expanded_query_dict, None, 0.3)
+
+    def search_helper(self, query_dict, k, p=0):
+        relevant_docs, query_vector = self._searcher.relevant_docs_from_posting(query_dict, p)
+        n_relevant = len(relevant_docs)
+        ranked_docs = self._searcher._ranker.rank_relevant_docs(relevant_docs, query_vector)
+        return n_relevant, self._searcher._ranker.retrieve_top_k(ranked_docs, k)
 
     def search_and_rank_query(self, query, k, p):
         query_as_list = self._parser.parse_sentence(query)[0]

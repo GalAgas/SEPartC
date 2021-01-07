@@ -11,21 +11,19 @@ class LocalMethod:
         # {wi : {doc1:tf1, doc3:tf3},  wj: {doc2:tf2, doc3:tf3}}
         self.relevant_docs_per_term = {}
 
-    def expand_query(self, query, round_1):
-        query_set = set()
-        query_set.update(query.split(' '))
+    def expand_query(self, query_dict, max_tf, round_1):
+        # query_set = set()
+        # query_set.update(query.split(' '))
+
+        expend_query_dict = query_dict
+        query_list_keys = list(expend_query_dict.keys())
 
         all_unique_terms = set()
         relevent_tweets_id = {}
-        for tup in round_1:
-            #local
-            try:
-                unique_terms = self.inverted_docs[tup[0]][0]
-            # others
-            except Exception:
-                unique_terms = self.inverted_docs[tup][0]
-            all_unique_terms.update(unique_terms)
 
+        for tup in round_1:
+            unique_terms = self.inverted_docs[tup][0]
+            all_unique_terms.update(unique_terms)
 
         for i, term in enumerate(all_unique_terms):
             # TODO - think how to fix (when we have bad entity)
@@ -44,7 +42,7 @@ class LocalMethod:
         query_indexes = []
         for i in range(len(all_terms)):
             self.correlation_matrix.append([])
-            if all_terms[i] in query_set:
+            if all_terms[i] in query_list_keys:
                 query_indexes.append(i)
             for j in range(len(all_terms)):
                 wi = all_terms[i]
@@ -60,11 +58,13 @@ class LocalMethod:
             # max_index_1 = self.normaliz(term_list, index)
             term_1 = all_terms[max_index_1]
             term_2 = all_terms[max_index_2]
-            query_set.add(term_1)
-            query_set.add(term_2)
 
-        query = ' '.join(str(e) for e in query_set)
-        return query
+            if term_1 not in expend_query_dict:
+                expend_query_dict[term_1] = 1.0/max_tf
+            if term_2 not in expend_query_dict:
+                expend_query_dict[term_2] = 1.0/max_tf
+
+        return expend_query_dict
 
     def normaliz(self, term_list, j):
         norm_before_sort = []
