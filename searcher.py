@@ -65,17 +65,19 @@ class Searcher:
 
         for idx, term in enumerate(list(query_dict.keys())):
             try:
+                # added
+                docs_index = self.get_doc_index()
                 tweets_per_term = self._indexer.get_term_posting_tweets_dict(term)
-                # if tweets_per_term is None:
-                #     print(term)
+
                 for tweet_id, vals in tweets_per_term.items():
+                    doc_date = docs_index[tweet_id][1]
                     if tweet_id not in relevant_docs.keys():
-                        relevant_docs[tweet_id] = np.zeros(len(query_dict), dtype=float)
+                        relevant_docs[tweet_id] = [np.zeros(len(query_dict), dtype=float),doc_date]
 
                     # Wij - update tweet vector in index of term with tf-idf
                     tf_tweet = vals[0]
                     idf_term = self._indexer.get_term_idf(term)
-                    relevant_docs[tweet_id][idx] = tf_tweet * idf_term
+                    relevant_docs[tweet_id][0][idx] = tf_tweet * idf_term
 
                     # Wiq - update query vector in index of term with tf-idf
                     tf_query = query_dict[term]
@@ -85,7 +87,7 @@ class Searcher:
 
         # OPTIMIZATIONS
         for doc in list(relevant_docs.keys()):
-            if np.count_nonzero(relevant_docs[doc]) < full_cells_threshold:
+            if np.count_nonzero(relevant_docs[doc][0]) < full_cells_threshold:
                 del relevant_docs[doc]
 
         return relevant_docs, query_vector

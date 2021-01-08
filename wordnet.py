@@ -6,7 +6,7 @@ class Wordnet:
 
     def __init__(self, searcher):
         self.searcher = searcher
-        self.p_threshold = 0.25
+        self.p_threshold = 0.3
 
     def get_term_synonym(self, tagged_term):
         synonym = None
