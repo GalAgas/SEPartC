@@ -6,7 +6,7 @@ class Thesaurus:
 
     def __init__(self, searcher):
         self.searcher = searcher
-        self.p_threshold = 0.2
+        self.p_threshold = 0.25
         # for best
         self.expanded_query_dict = None
         self.max_tf_query = None
@@ -38,11 +38,9 @@ class Thesaurus:
         expanded_query_dict = query_dict
         for tagged_term in tagged_query_terms :
             term_syn = self.get_term_synonym(tagged_term)
-
-            print(f"thesaurus expand_query -> {term_syn}")
-
             if term_syn and term_syn not in expanded_query_dict and self.searcher.is_term_in_index(term_syn):
                 expanded_query_dict[term_syn] = 1.0/max_tf_query
+        # for best - local
         self.expanded_query_dict = expanded_query_dict
         self.max_tf_query = max_tf_query
         return expanded_query_dict

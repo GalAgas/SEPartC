@@ -6,7 +6,10 @@ class Wordnet:
 
     def __init__(self, searcher):
         self.searcher = searcher
-        self.p_threshold = 0.3
+        self.p_threshold = 0.25
+        # for best
+        self.expanded_query_dict = None
+        self.max_tf_query = None
 
     def get_term_synonym(self, tagged_term):
         synonym = None
@@ -38,4 +41,7 @@ class Wordnet:
 
             if term_syn and term_syn not in expanded_query_dict and self.searcher.is_term_in_index(term_syn):
                 expanded_query_dict[term_syn] = 1.0/max_tf_query
+        # for best - local
+        self.expanded_query_dict = expanded_query_dict
+        self.max_tf_query = max_tf_query
         return expanded_query_dict

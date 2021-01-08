@@ -38,7 +38,7 @@ class SearchEngine:
         # avg_doc_len = self._parser.total_len_docs / self._parser.number_of_documents
         # self._indexer.save_index("inverted_idx")
         # TODO - check the name of inverted_idx
-        self._indexer.save_index("idx_bench")
+        self._indexer.save_index("idx_bench.pkl")
 
     # TODO - need to change the call inside to build_index_from_parquet(self, fn)
     def main_method(self, corpus_path, output_path, stemming, queries, num_docs_to_retrieve):
@@ -142,7 +142,7 @@ class SearchEngine:
         df.to_csv('results.csv')
 
     def clean(self):
-        p = 0.0008
+        p = 0.0007
         num_of_terms = round(p * len(self._indexer.inverted_idx_term))
         sorted_index = sorted(self._indexer.inverted_idx_term.items(), key=lambda item: item[1][0], reverse=True)
 
