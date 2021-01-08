@@ -31,10 +31,12 @@ class Ranker:
         :param relevant_doc: dictionary of documents that contains at least one term from the query.
         :return: sorted list of documents by score
         """
-        for tweet, tweet_vector in relevant_docs.items():
+        for tweet, tweet_data in relevant_docs.items():
+            tweet_vector = tweet_data[0]
             cosine_sim = dot(tweet_vector, query_vector) / (norm(tweet_vector) * norm(query_vector))
-            relevant_docs[tweet] = cosine_sim
-        return sorted(relevant_docs.items(), key=lambda item: item[1], reverse=True)
+            relevant_docs[tweet][0] = cosine_sim
+        return sorted(relevant_docs.items(), key=lambda item: (item[1][0], item[1][1]), reverse=True)
+
 
     # check what about k=none
     @staticmethod

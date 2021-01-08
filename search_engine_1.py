@@ -142,7 +142,7 @@ class SearchEngine:
         df.to_csv('results.csv')
 
     def clean(self):
-        p = 0.0005
+        p = 0.0008
         num_of_terms = round(p * len(self._indexer.inverted_idx_term))
         sorted_index = sorted(self._indexer.inverted_idx_term.items(), key=lambda item: item[1][0], reverse=True)
 
