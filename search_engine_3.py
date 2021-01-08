@@ -41,9 +41,7 @@ class SearchEngine:
         self._indexer.entities_and_small_big()
         self._indexer.calculate_idf(self._parser.number_of_documents)
         # avg_doc_len = self._parser.total_len_docs / self._parser.number_of_documents
-        self._indexer.save_index("inverted_idx")
-        # TODO - check the name of inverted_idx
-        # self._indexer.save_index("idx_bench")
+        self._indexer.save_index("idx_bench.pkl")
 
     # DO NOT MODIFY THIS SIGNATURE
     # You can change the internal implementation as you see fit.
@@ -66,9 +64,7 @@ class SearchEngine:
             # index the document data
             self._indexer.add_new_doc(parsed_document)
         # self._indexer.entities_and_small_big()
-        ###########
-        self.test_and_clean()
-        ###########
+        self.clean()
         self._indexer.calculate_idf(self._parser.number_of_documents)
         self._indexer.save_index("idx_bench.pkl")
         print('Finished parsing and indexing.')
@@ -106,37 +102,11 @@ class SearchEngine:
             a list of tweet_ids where the first element is the most relavant
             and the last is the least relevant result.
         """
+        searcher = Searcher(self._parser, self._indexer, model=self._model)
+        searcher.set_method_type('3')
+        return searcher.search(query)
 
-        query_as_list = self._parser.parse_sentence(query)[0]
-        query_dict, max_tf_query = self._searcher.get_query_dict(query_as_list)
-
-        # round_1 = self.search_and_rank_query(query, 100, 0)
-
-        round_1_len, round_1 = self.search_helper(query_dict, 100, 0)
-        # relevant_docs, query_vector = searcher.relevant_docs_from_posting(query_dict, 0)
-        # # n_relevant = len(relevant_docs)
-        # ranked_docs = searcher._ranker.rank_relevant_docs(relevant_docs, query_vector)
-        # round_1 = searcher._ranker.retrieve_top_k(ranked_docs, 100)
-
-        local = LocalMethod(self._indexer)
-        expanded_query_dict = local.expand_query(query_dict, max_tf_query, round_1)
-
-        return self.search_helper(expanded_query_dict, None, 0.3)
-
-    def search_helper(self, query_dict, k, p=0):
-        relevant_docs, query_vector = self._searcher.relevant_docs_from_posting(query_dict, p)
-        n_relevant = len(relevant_docs)
-        ranked_docs = self._searcher._ranker.rank_relevant_docs(relevant_docs, query_vector)
-        return n_relevant, self._searcher._ranker.retrieve_top_k(ranked_docs, k)
-
-    def search_and_rank_query(self, query, k, p):
-        query_as_list = self._parser.parse_sentence(query)[0]
-        query_dict, max_tf_query = self.get_query_dict(query_as_list)
-        relevant_docs, query_vector = self.relevant_docs_from_posting(query_dict, p)
-        ranked_docs = self._ranker.rank_relevant_docs(relevant_docs, query_vector)
-        return ranked_docs[:k]
-
-    def test_and_clean(self):
+    def clean(self):
         p = 0.0008
         num_of_terms = round(p * len(self._indexer.inverted_idx_term))
         sorted_index = sorted(self._indexer.inverted_idx_term.items(), key=lambda item: item[1][0], reverse=True)

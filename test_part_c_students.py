@@ -81,7 +81,8 @@ if __name__ == '__main__':
 
         # test for each search engine module
         # engine_modules = ['search_engine_' + name for name in ['1', '2', 'best']]
-        engine_modules = ['search_engine_' + name for name in ['best']]
+        # engine_modules = ['search_engine_' + name for name in ['best']]
+        engine_modules = ['search_engine_' + name for name in ['3']]
         for engine_module in engine_modules:
             try:
                 # does the module file exist?
@@ -121,6 +122,7 @@ if __name__ == '__main__':
                         q_id = row['query_id']
                         q_keywords = row['keywords']
                         start_time = time.time()
+                        print(i)
                         q_n_res, q_res = engine.search(q_keywords)
                         end_time = time.time()
                         q_time = end_time - start_time

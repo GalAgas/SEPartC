@@ -3,38 +3,38 @@ from collections import defaultdict
 
 class LocalMethod:
 
-    def __init__(self, indexer):
-        self.inverted_docs = indexer.inverted_idx_doc
-        self.inverted_term = indexer.inverted_idx_term
+    def __init__(self, searcher):
+        self.searcher = searcher
+        self.p_threshold = 0.2
 
         self.correlation_matrix = []
         # {wi : {doc1:tf1, doc3:tf3},  wj: {doc2:tf2, doc3:tf3}}
         self.relevant_docs_per_term = {}
 
-    def expand_query(self, query_dict, max_tf, round_1):
-        # query_set = set()
-        # query_set.update(query.split(' '))
+    def expand_query(self, query_dict, max_tf_query):
+        round_1_len, round_1 = self.searcher.search_helper(query_dict, None, 0.5)
+        return self.helper_expand(query_dict, max_tf_query, round_1)
 
+    def helper_expand(self, query_dict, max_tf, round_1):
         expend_query_dict = query_dict
         query_list_keys = list(expend_query_dict.keys())
-
         all_unique_terms = set()
-        relevent_tweets_id = {}
 
         for tup in round_1:
-            unique_terms = self.inverted_docs[tup][0]
+            unique_terms = self.searcher.get_doc_index()[tup][0]
             all_unique_terms.update(unique_terms)
 
         for i, term in enumerate(all_unique_terms):
-            # TODO - think how to fix (when we have bad entity)
-            try:
-                tweets_contain_term_dict = self.inverted_term[term][1]
-            except Exception:
+            # try:
+            tweets_contain_term_dict = self.searcher._indexer.get_term_posting_tweets_dict(term)
+            if tweets_contain_term_dict is None:
                 continue
+                # tweets_contain_term_dict = self.searcher.get_term_index()[term][1]
+            # except Exception:
+            #     continue
             # create term in self.relevant_docs_per_term - {wi : {doc1:tf1, doc3:tf3},  wj: {doc2:tf2, doc3:tf3}}
             self.relevant_docs_per_term[term] = {}
-            for tweet_tuple in round_1:
-                tweet_id = tweet_tuple[0]
+            for tweet_id in round_1:
                 if tweet_id in tweets_contain_term_dict:
                     self.relevant_docs_per_term[term][tweet_id] = tweets_contain_term_dict[tweet_id][0]
 
@@ -55,7 +55,6 @@ class LocalMethod:
         for index in query_indexes:
             term_list = self.correlation_matrix[index]
             max_index_1, max_index_2 = self.normaliz(term_list, index)
-            # max_index_1 = self.normaliz(term_list, index)
             term_1 = all_terms[max_index_1]
             term_2 = all_terms[max_index_2]
 
@@ -64,6 +63,7 @@ class LocalMethod:
             if term_2 not in expend_query_dict:
                 expend_query_dict[term_2] = 1.0/max_tf
 
+        print(expend_query_dict)
         return expend_query_dict
 
     def normaliz(self, term_list, j):

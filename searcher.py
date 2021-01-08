@@ -33,23 +33,12 @@ class Searcher:
             a list of tweet_ids where the first element is the most relavant
             and the last is the least relevant result.
         """
-        # TODO- parse_sentence(query) return :tokenized_text, entities_set, small_big_dict
-        # TODO - need to check what to do with entities & small big
         query_as_list = self._parser.parse_sentence(query)[0]
         query_dict, max_tf_query = self.get_query_dict(query_as_list)
-
-        # # with wordnet\thesaurus expansion
         expanded_query_dict = self._method_class.expand_query(query_dict, max_tf_query)
-        relevant_docs, query_vector = self.relevant_docs_from_posting(expanded_query_dict)
-
-        # without wordnet\thesaurus expansion
-#         relevant_docs, query_vector = self.relevant_docs_from_posting(query_dict)
-
-        # TODO - fix n_relevant if smallest than k? return k
-        n_relevant = len(relevant_docs)
-        ranked_docs = self._ranker.rank_relevant_docs(relevant_docs, query_vector)
-        ranked_doc_ids = self._ranker.retrieve_top_k(ranked_docs, k)
-        return n_relevant, ranked_doc_ids
+        # print(f"k: {k}")
+        # print(f"p: {self._method_class.p_threshold}")
+        return self.search_helper(expanded_query_dict, k, self._method_class.p_threshold)
 
     # create {term : tf} for query
     def get_query_dict(self, tokenized_query):
@@ -69,12 +58,9 @@ class Searcher:
 
         return query_dict, max_tf
 
-    def relevant_docs_from_posting(self, query_dict, p=0):
+    def relevant_docs_from_posting(self, query_dict, p_threshold=0):
         relevant_docs = {}
         query_vector = np.zeros(len(query_dict), dtype=float)
-
-        # TODO - check after new parser
-        p_threshold = 0.25
         full_cells_threshold = round(p_threshold * len(query_vector))
 
         for idx, term in enumerate(list(query_dict.keys())):
@@ -97,7 +83,7 @@ class Searcher:
             except:
                 pass
 
-        # TODO - OPTIMIZATIONS
+        # OPTIMIZATIONS
         for doc in list(relevant_docs.keys()):
             if np.count_nonzero(relevant_docs[doc]) < full_cells_threshold:
                 del relevant_docs[doc]
@@ -106,9 +92,25 @@ class Searcher:
 
     def set_method_type(self, method_type):
         if method_type == '1':
-            self._method_class = Wordnet()
+            self._method_class = Wordnet(self)
         elif method_type == '2':
-            self._method_class = Thesaurus()
+            self._method_class = Thesaurus(self)
         elif method_type == '3':
-            self._method_class = LocalMethod(self._indexer)
+            self._method_class = LocalMethod(self)
         # elif.. more methods
+
+
+    def get_term_index(self):
+        return self._indexer.inverted_idx_term
+
+    def get_doc_index(self):
+        return self._indexer.inverted_idx_doc
+
+    def is_term_in_index(self, term):
+        return term in self._indexer.inverted_idx_term
+
+    def search_helper(self, query_dict, k, p_threshold=0):
+        relevant_docs, query_vector = self.relevant_docs_from_posting(query_dict, p_threshold)
+        n_relevant = len(relevant_docs)
+        ranked_docs = self._ranker.rank_relevant_docs(relevant_docs, query_vector)
+        return n_relevant, self._ranker.retrieve_top_k(ranked_docs, k)

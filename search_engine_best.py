@@ -6,6 +6,8 @@ from searcher import Searcher
 from ranker import Ranker
 from localMethod import LocalMethod
 from thesaurus import Thesaurus
+from wordnet import Wordnet
+
 
 import numpy as np
 
@@ -22,8 +24,7 @@ class SearchEngine:
         self._indexer = Indexer(self._config)
         self._ranker = Ranker()
         self._model = None
-        self._searcher = Searcher(self._parser, self._indexer)
-        self._thesaurus = Thesaurus()
+
 
     # TODO - check if need to keep this func, all corpus
     def run_engine(self):
@@ -69,9 +70,7 @@ class SearchEngine:
             # index the document data
             self._indexer.add_new_doc(parsed_document)
         # self._indexer.entities_and_small_big()
-        ###########
-        self.test_and_clean()
-        ###########
+        self.clean()
         self._indexer.calculate_idf(self._parser.number_of_documents)
         self._indexer.save_index("idx_bench.pkl")
         print('Finished parsing and indexing.')
@@ -109,39 +108,21 @@ class SearchEngine:
             a list of tweet_ids where the first element is the most relavant
             and the last is the least relevant result.
         """
+        searcher = Searcher(self._parser, self._indexer, model=self._model)
+        searcher.set_method_type('2')
+        round_1_len, round_1 = searcher.search(query)
+        # round_1_len, round_1 = self.search_helper(expanded_query, None, 0.7)
 
-        query_as_list = self._parser.parse_sentence(query)[0]
-        query_dict, max_tf_query = self._searcher.get_query_dict(query_as_list)
+        local = LocalMethod(searcher)
+        expanded_query_dict = local.helper_expand(searcher._method_class.expanded_query_dict, searcher._method_class.max_tf_query, round_1)
+        return searcher.search_helper(expanded_query_dict, None, 0.3)
 
-        thes = Thesaurus()
-        expanded_query = thes.expand_query(query_dict, max_tf_query)
-        round_1_len, round_1 = self.search_helper(expanded_query, None, 0.4)
-
-        local = LocalMethod(self._indexer)
-        expanded_query_dict = local.expand_query(query_dict, max_tf_query, round_1)
-
-        return self.search_helper(expanded_query_dict, None, 0.3)
-
-    def search_helper(self, query_dict, k, p=0):
-        relevant_docs, query_vector = self._searcher.relevant_docs_from_posting(query_dict, p)
-        n_relevant = len(relevant_docs)
-        ranked_docs = self._searcher._ranker.rank_relevant_docs(relevant_docs, query_vector)
-        return n_relevant, self._searcher._ranker.retrieve_top_k(ranked_docs, k)
-
-    def search_and_rank_query(self, query, k, p):
-        query_as_list = self._parser.parse_sentence(query)[0]
-        query_dict, max_tf_query = self.get_query_dict(query_as_list)
-        relevant_docs, query_vector = self.relevant_docs_from_posting(query_dict, p)
-        ranked_docs = self._ranker.rank_relevant_docs(relevant_docs, query_vector)
-        return ranked_docs[:k]
-
-    def test_and_clean(self):
+    def clean(self):
         p = 0.0008
         num_of_terms = round(p * len(self._indexer.inverted_idx_term))
         sorted_index = sorted(self._indexer.inverted_idx_term.items(), key=lambda item: item[1][0], reverse=True)
 
         for i in range(num_of_terms):
-            # print(sorted_index[i][0])
             del self._indexer.inverted_idx_term[sorted_index[i][0]]
 
         for term in list(self._indexer.inverted_idx_term.keys()):

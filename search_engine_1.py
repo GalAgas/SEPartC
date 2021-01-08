@@ -95,11 +95,9 @@ class SearchEngine:
             # index the document data
             self._indexer.add_new_doc(parsed_document)
         # self._indexer.entities_and_small_big()
-        ###########
-        self.test_and_clean()
-        ###########
+        self.clean()
         self._indexer.calculate_idf(self._parser.number_of_documents)
-        self._indexer.save_index("idx_bench")
+        self._indexer.save_index("idx_bench.pkl")
         print('Finished parsing and indexing.')
 
     # DO NOT MODIFY THIS SIGNATURE
@@ -143,11 +141,10 @@ class SearchEngine:
         df = pd.DataFrame(tuple_list, columns=['query', 'tweet_id', 'score'])
         df.to_csv('results.csv')
 
-    def test_and_clean(self):
-        p = 0.0008
+    def clean(self):
+        p = 0.0005
         num_of_terms = round(p * len(self._indexer.inverted_idx_term))
         sorted_index = sorted(self._indexer.inverted_idx_term.items(), key=lambda item: item[1][0], reverse=True)
-
 
         for i in range(num_of_terms):
             print(sorted_index[i][0])
