@@ -39,6 +39,7 @@ class LocalMethod:
                     self.relevant_docs_per_term[term][tweet_id] = tweets_contain_term_dict[tweet_id][0]
 
         all_terms = list(self.relevant_docs_per_term.keys())
+        all_terms.sort()
         query_indexes = []
         for i in range(len(all_terms)):
             self.correlation_matrix.append([])
@@ -63,7 +64,6 @@ class LocalMethod:
             if term_2 not in expend_query_dict:
                 expend_query_dict[term_2] = 1.0/max_tf
 
-        print(expend_query_dict)
         return expend_query_dict
 
     def normaliz(self, term_list, j):
@@ -78,12 +78,21 @@ class LocalMethod:
                     (self.correlation_matrix[i][i]) + float(self.correlation_matrix[j][j]) - float(
                         self.correlation_matrix[i][j])))
 
-        # remove the query term
         norm_before_sort[j] = 0
-        norm = norm_before_sort.copy()
-        norm.sort(reverse=True)
-        # return norm_before_sort.index(norm[0])
-        return norm_before_sort.index(norm[0]), norm_before_sort.index(norm[1])
+        i_1 = self.find_max_index(norm_before_sort)
+        norm_before_sort[i_1] = 0
+        i_2 = self.find_max_index(norm_before_sort)
+        return i_1, i_2
+
+    def find_max_index(self, arr):
+        curr_val = arr[0]
+        curr_i = 0
+
+        for i, v in enumerate(arr):
+            if v > curr_val:
+                curr_val = v
+                curr_i = i
+        return curr_i
 
     def calculate_Cij(self, wi_tf_dict, wj_tf_dict):
         cij = 0
