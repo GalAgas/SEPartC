@@ -73,10 +73,10 @@ class Indexer:
         Input:
             fn - file name of pickled index.
         """
-        # return utils.load_obj(self.config.get_savedFileMainFolder() + "\\" + fn)
-        return utils.load_obj(self.config.get_savedFileMainFolder() + fn)
+        index_tup = utils.load_obj(fn)
+        self.inverted_idx_doc = index_tup[0]
+        self.inverted_idx_term = index_tup[1]
 
-    # TODO ***************************  fix this for tests!! ****************************
     # DO NOT MODIFY THIS SIGNATURE
     # You can change the internal implementation as you see fit.
     def save_index(self, fn):
@@ -85,24 +85,8 @@ class Indexer:
         Input:
               fn - file name of pickled index.
         """
-        # utils.save_obj(self.inverted_idx, self.config.get_savedFileMainFolder() + "\\" + fn)
-        # TODO - fix this for tests!! we have now 2 indexes
-        utils.save_obj(self.inverted_idx_term, fn)
-
-    # determine the final form of the saved term in inverted_index
-    # small or big letter, save or del entity
-    # def entities_and_small_big(self):
-    #     for term in list(self.inverted_idx_term.keys()):
-    #         # bad entity
-    #         if term in self.entities and self.entities[term] < 2:
-    #             del self.inverted_idx_term[term]
-
-            # # only big letters
-            # if term in self.small_big and not self.small_big[term]:
-            #     lower_term = term
-            #     term = term.upper()
-            #     self.inverted_idx_term[term] = self.inverted_idx_term[lower_term]
-            #     del self.inverted_idx_term[lower_term]
+        index_tup = (self.inverted_idx_doc, self.inverted_idx_term)
+        utils.save_obj(index_tup, fn)
 
     # Calculate idf for each term in inverted index after finish indexing
     def calculate_idf(self, N):
