@@ -31,9 +31,6 @@ class LocalMethod:
             tweets_contain_term_dict = self.searcher._indexer.get_term_posting_tweets_dict(term)
             if tweets_contain_term_dict is None:
                 continue
-                # tweets_contain_term_dict = self.searcher.get_term_index()[term][1]
-            # except Exception:
-            #     continue
             # create term in self.relevant_docs_per_term - {wi : {doc1:tf1, doc3:tf3},  wj: {doc2:tf2, doc3:tf3}}
             self.relevant_docs_per_term[term] = {}
             for tweet_id in round_1:
