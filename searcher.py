@@ -39,9 +39,7 @@ class Searcher:
         query_as_list = self._parser.parse_sentence(query)[0]
         query_dict, max_tf_query = self.get_query_dict(query_as_list)
         expanded_query_dict = self._method_class.expand_query(query_dict, max_tf_query)
-        # print(f"k: {k}")
-        # print(f"p: {self._method_class.p_threshold}")
-        return self.search_helper(expanded_query_dict, k, self._method_class.p_threshold)
+        return self.search_helper(expanded_query_dict, k, self._method_class.p_threshold, self._method_class.p_rel)
 
     # create {term : tf} for query
     def get_query_dict(self, tokenized_query):
@@ -116,8 +114,8 @@ class Searcher:
     def is_term_in_index(self, term):
         return term in self._indexer.inverted_idx_term
 
-    def search_helper(self, query_dict, k, p_threshold=0):
+    def search_helper(self, query_dict, k, p_threshold=0, p_relevant=0):
         relevant_docs, query_vector = self.relevant_docs_from_posting(query_dict, p_threshold)
         n_relevant = len(relevant_docs)
         ranked_docs = self._ranker.rank_relevant_docs(relevant_docs, query_vector)
-        return n_relevant, self._ranker.retrieve_top_k(ranked_docs, k)
+        return n_relevant, self._ranker.retrieve_top_k(ranked_docs, k, p_relevant)

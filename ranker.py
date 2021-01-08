@@ -40,12 +40,15 @@ class Ranker:
 
     # check what about k=none
     @staticmethod
-    def retrieve_top_k(sorted_relevant_doc, k=None):
+    def retrieve_top_k(sorted_relevant_doc, k=None, p_relevant=0):
         """
         return a list of top K tweets based on their ranking from highest to lowest
         :param sorted_relevant_doc: list of all candidates docs.
         :param k: Number of top document to return
         :return: list of relevant document
         """
+        if k is None:
+            k = round(p_relevant * len(sorted_relevant_doc))
+
         top_k = sorted_relevant_doc[:k]
         return [tup[0] for tup in top_k]

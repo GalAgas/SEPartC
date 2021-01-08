@@ -6,13 +6,15 @@ class LocalMethod:
     def __init__(self, searcher):
         self.searcher = searcher
         self.p_threshold = 0.2
+        self.p_rel = 0.9
+
 
         self.correlation_matrix = []
         # {wi : {doc1:tf1, doc3:tf3},  wj: {doc2:tf2, doc3:tf3}}
         self.relevant_docs_per_term = {}
 
     def expand_query(self, query_dict, max_tf_query):
-        round_1_len, round_1 = self.searcher.search_helper(query_dict, None, 0.5)
+        round_1_len, round_1 = self.searcher.search_helper(query_dict, 200, 0.25)
         return self.helper_expand(query_dict, max_tf_query, round_1)
 
     def helper_expand(self, query_dict, max_tf, round_1):

@@ -109,23 +109,12 @@ class SearchEngine:
             and the last is the least relevant result.
         """
         searcher = Searcher(self._parser, self._indexer, model=self._model)
+        # Thesaurus model
         searcher.set_method_type('2')
-        # searcher.set_method_type('1')
-        # set p_threshold for best!
-        ####################################
-        # wordnet
-
-        # round_1_len, round_1 = searcher.search(query, 200)
-        # local = LocalMethod(searcher)
-        # expanded_query_dict = local.helper_expand(searcher._method_class.expanded_query_dict, searcher._method_class.max_tf_query, round_1)
-        # return searcher.search_helper(expanded_query_dict, 1000, 0.25)
-        #########################################
-
-        # thes
         round_1_len, round_1 = searcher.search(query, 200)
         local = LocalMethod(searcher)
         expanded_query_dict = local.helper_expand(searcher._method_class.expanded_query_dict, searcher._method_class.max_tf_query, round_1)
-        return searcher.search_helper(expanded_query_dict, 1000, 0.25)
+        return searcher.search_helper(expanded_query_dict, None, 0.25, 0.9)
 
     def clean(self):
         p = 0.0008
