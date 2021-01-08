@@ -3,6 +3,7 @@ import numpy as np
 from wordnet import Wordnet
 from thesaurus import Thesaurus
 from localMethod import LocalMethod
+from spellChecker import MySpellCheker
 
 # DO NOT MODIFY CLASS NAME
 class Searcher:
@@ -14,6 +15,7 @@ class Searcher:
     def __init__(self, parser, indexer, model=None):
         self._parser = parser
         self._indexer = indexer
+
         self._ranker = Ranker()
         self._model = model
         self._config = self._indexer.config
@@ -33,6 +35,7 @@ class Searcher:
             a list of tweet_ids where the first element is the most relavant
             and the last is the least relevant result.
         """
+        self._indexer.load_index("idx_bench.pkl")
         query_as_list = self._parser.parse_sentence(query)[0]
         query_dict, max_tf_query = self.get_query_dict(query_as_list)
         expanded_query_dict = self._method_class.expand_query(query_dict, max_tf_query)
@@ -99,6 +102,8 @@ class Searcher:
             self._method_class = Thesaurus(self)
         elif method_type == '3':
             self._method_class = LocalMethod(self)
+        elif method_type == '4':
+            self._method_class = MySpellCheker(self)
         # elif.. more methods
 
 

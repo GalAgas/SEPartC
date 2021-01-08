@@ -17,64 +17,6 @@ class SearchEngine:
         self._indexer = Indexer(self._config)
         self._model = None
 
-    # TODO - check if need to keep this func, all corpus
-    def run_engine(self):
-        """
-        :return:
-        """
-        r = ReadFile(corpus_path=self._config.get__corpusPath())
-        number_of_files = 0
-
-        for i, file in enumerate(r.read_corpus()):
-            # Iterate over every document in the file
-            number_of_files += 1
-            for idx, document in enumerate(file):
-                # parse the document
-                parsed_document = self._parser.parse_doc(document)
-                self._indexer.add_new_doc(parsed_document)
-
-        self._indexer.entities_and_small_big()
-        self._indexer.calculate_idf(self._parser.number_of_documents)
-        # avg_doc_len = self._parser.total_len_docs / self._parser.number_of_documents
-        self._indexer.save_index("inverted_idx")
-        # TODO - check the name of inverted_idx
-        # self._indexer.save_index("idx_bench")
-
-    # TODO - need to change the call inside to build_index_from_parquet(self, fn)
-    def main_method(self, corpus_path, output_path, stemming, queries, num_docs_to_retrieve):
-        if num_docs_to_retrieve > 2000:
-            num_docs_to_retrieve = 2000
-
-        # update configurations
-        self._config.set_corpusPath(corpus_path)
-        self._config.set_toStem(stemming)
-        self._config.set_savedFileMainFolder(output_path)
-
-        # TODO - need to change to build_index_from_parquet(self, fn)
-        # self.run_engine()
-        print("finish run engine!")
-        self._indexer.inverted_idx = self.load_index("inverted_idx")
-
-        #######################################################################
-        # TODO - cleaning
-        # self.test_and_clean()
-        #######################################################################
-
-        if type(queries) is list:
-            queries_list = queries
-        else:
-            queries_list = [line.strip() for line in open(queries, encoding="utf8")]
-
-        csv_data = []
-        for idx, query in enumerate(queries_list):
-            n_relevant, ranked_doc_ids = self.search(query, num_docs_to_retrieve)
-            # print(n_relevant)
-            # print(ranked_doc_ids)
-            # print('##################################################')
-
-        #     for tup in round_2:
-        #         csv_data.append((idx+1, tup[0], tup[1]))
-        # write_to_csv(csv_data)
 
     # DO NOT MODIFY THIS SIGNATURE
     # You can change the internal implementation as you see fit.
@@ -96,12 +38,10 @@ class SearchEngine:
             number_of_documents += 1
             # index the document data
             self._indexer.add_new_doc(parsed_document)
-        # self._indexer.entities_and_small_big()
-        ###########
-        self.test_and_clean()
-        ###########
+
+        self.clean()
         self._indexer.calculate_idf(self._parser.number_of_documents)
-        self._indexer.save_index("idx_bench")
+        self._indexer.save_index("idx_bench.pkl")
         print('Finished parsing and indexing.')
 
     # DO NOT MODIFY THIS SIGNATURE
@@ -112,7 +52,7 @@ class SearchEngine:
         Input:
             fn - file name of pickled index.
         """
-        return self._indexer.load_index(fn)
+        self._indexer.load_index(fn)
 
     # DO NOT MODIFY THIS SIGNATURE
     # You can change the internal implementation as you see fit.
@@ -141,13 +81,7 @@ class SearchEngine:
         searcher.set_method_type('2')
         return searcher.search(query)
 
-    def write_to_csv(tuple_list):
-        df = pd.DataFrame(tuple_list, columns=['query', 'tweet_id', 'score'])
-        df.to_csv('results.csv')
-
-
-
-    def test_and_clean(self):
+    def clean(self):
         p = 0.0008
         num_of_terms = round(p * len(self._indexer.inverted_idx_term))
         sorted_index = sorted(self._indexer.inverted_idx_term.items(), key=lambda item: item[1][0], reverse=True)

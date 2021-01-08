@@ -17,30 +17,6 @@ class SearchEngine:
         self._indexer = Indexer(self._config)
         self._model = None
 
-    # TODO - check if need to keep this func, all corpus
-    def run_engine(self):
-        """
-        :return:
-        """
-        r = ReadFile(corpus_path=self._config.get__corpusPath())
-        number_of_files = 0
-
-        for i, file in enumerate(r.read_corpus()):
-            # Iterate over every document in the file
-            number_of_files += 1
-            for idx, document in enumerate(file):
-                # parse the document
-                parsed_document = self._parser.parse_doc(document)
-                self._indexer.add_new_doc(parsed_document)
-
-        # self._indexer.entities_and_small_big()
-        self._indexer.calculate_idf(self._parser.number_of_documents)
-        # avg_doc_len = self._parser.total_len_docs / self._parser.number_of_documents
-        # self._indexer.save_index("inverted_idx")
-        # TODO - check the name of inverted_idx
-        self._indexer.save_index("idx_bench")
-
-
     # DO NOT MODIFY THIS SIGNATURE
     # You can change the internal implementation as you see fit.
     def build_index_from_parquet(self, fn):
@@ -61,12 +37,9 @@ class SearchEngine:
             number_of_documents += 1
             # index the document data
             self._indexer.add_new_doc(parsed_document)
-        # self._indexer.entities_and_small_big()
-        ###########
-        self.test_and_clean()
-        ###########
+        self.clean()
         self._indexer.calculate_idf(self._parser.number_of_documents)
-        self._indexer.save_index("idx_bench")
+        self._indexer.save_index("idx_bench.pkl")
         print('Finished parsing and indexing.')
 
     # DO NOT MODIFY THIS SIGNATURE
@@ -77,7 +50,7 @@ class SearchEngine:
         Input:
             fn - file name of pickled index.
         """
-        return self._indexer.load_index(fn)
+        self._indexer.load_index(fn)
 
     # DO NOT MODIFY THIS SIGNATURE
     # You can change the internal implementation as you see fit.
@@ -103,23 +76,15 @@ class SearchEngine:
             and the last is the least relevant result.
         """
         searcher = Searcher(self._parser, self._indexer, model=self._model)
-        searcher.set_method_type('1')
-        sp = MySpellCheker()
-        query
-        #return searcher.search(query)
+        searcher.set_method_type('4')
+        return searcher.search(query)
 
-    def write_to_csv(tuple_list):
-        df = pd.DataFrame(tuple_list, columns=['query', 'tweet_id', 'score'])
-        df.to_csv('results.csv')
-
-    def test_and_clean(self):
+    def clean(self):
         p = 0.0008
         num_of_terms = round(p * len(self._indexer.inverted_idx_term))
         sorted_index = sorted(self._indexer.inverted_idx_term.items(), key=lambda item: item[1][0], reverse=True)
 
-
         for i in range(num_of_terms):
-            print(sorted_index[i][0])
             del self._indexer.inverted_idx_term[sorted_index[i][0]]
 
         for term in list(self._indexer.inverted_idx_term.keys()):
