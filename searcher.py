@@ -95,11 +95,11 @@ class Searcher:
 
     def set_method_type(self, method_type):
         if method_type == '1':
-            self._method_class = Wordnet(self)
+            self._method_class = LocalMethod(self)
         elif method_type == '2':
             self._method_class = Thesaurus(self)
         elif method_type == '3':
-            self._method_class = LocalMethod(self)
+            self._method_class = Wordnet(self)
         elif method_type == '4':
             self._method_class = MySpellCheker(self)
         # elif.. more methods

@@ -43,19 +43,18 @@ class Parse:
         t = []
         # --> #stay_at_home
         if '_' in token:
-            # t.append('#' + re.sub(r'_', '', token))
             t += re.split(r'_', token)
         else:
             # --> #stayAtHome
             if not token.isupper():
-                # t.append(token)
-                # t.append('#' + token)
                 t += re.findall('[A-Z][^A-Z]*', token)
             # --> #ASD
             else:
                 # all_tokens_list.append('#' + token)
                 if self.with_stem:
                     token = self.stemmer.stem_term(token)
+                if len(token) == 1:
+                    return
                 all_tokens_list.append(token.lower())
                 return
 
@@ -65,7 +64,9 @@ class Parse:
             t = [x.lower() for x in t]
         if '' in t:
             t.remove('')
-        all_tokens_list += t
+        for term in t:
+            if len(term) > 1:
+                all_tokens_list.append(term)
 
     def parse_numbers(self, all_tokens_list, token, before_token, after_token, text_tokens):
         def helper(num):
@@ -179,24 +180,11 @@ class Parse:
 
         tokenized_text = []
         text_tokens = word_tokenize(text)
-        entity = ''
-        entity_counter = 0
 
         entities_set = set()
         small_big_dict = {}
 
         skip = False
-
-        def handle_entity(entity, entity_counter):
-            if entity_counter > 1:
-                entities_set.add(entity)
-                tokenized_text.append(entity)
-            elif entity_counter == 1:
-                if self.with_stem:
-                    entity = self.stemmer.stem_term(entity)
-                tokenized_text.append(entity)
-                # if entity not in small_big_dict.keys():
-                #     small_big_dict[entity.lower()] = False
 
         for i, token in enumerate(text_tokens):
 
@@ -206,37 +194,15 @@ class Parse:
 
             if self.is_cool(token):
 
-                # if self.with_stem:
-                #     token = self.stemmer.stem_term(token)
-
-                # if token == '@':
-                #     if i < (len(text_tokens) - 1):
-                #         tokenized_text.append(token + text_tokens[i + 1])
-                #         skip = True
-                #         ##############################################
-                #         handle_entity(entity, entity_counter)
-                #         entity = ''
-                #         entity_counter = 0
-                #         continue
-
                 if token == '#':
                     if i < (len(text_tokens) - 1):
                         self.parse_hashtag(tokenized_text, text_tokens[i + 1])
                         skip = True
-                        ##############################################
-                        # handle_entity(entity, entity_counter)
-                        # entity = ''
-                        # entity_counter = 0
-                        # continue
 
                 # DATES
                 date_match = self.dates_pattern.match(token)
                 if date_match:
                     tokenized_text.append(token)
-                    ##############################################
-                    # handle_entity(entity, entity_counter)
-                    # entity = ''
-                    # entity_counter = 0
 
                 # NUMBERS
                 number_match = self.numbers_pattern.match(token)
@@ -244,10 +210,6 @@ class Parse:
                     # Numbers over TR
                     if len(token) > 18:
                         tokenized_text.append(token)
-                        ##############################################
-                        # handle_entity(entity, entity_counter)
-                        # entity = ''
-                        # entity_counter = 0
 
                     start, stop = number_match.span()
                     if (stop - start) == len(token):
@@ -258,69 +220,20 @@ class Parse:
                         if i > 0:
                             before_t = text_tokens[i - 1]
                         self.parse_numbers(tokenized_text, token, before_t, after_t, text_tokens)
-                        ##############################################
-                        # handle_entity(entity, entity_counter)
-                        # entity = ''
-                        # entity_counter = 0
-                        # continue
 
                 if ('.' in token) and (len(token) > 1) and any(c.isalpha() for c in token):
                     tokenized_text.append(token)
-                    ##############################################
-                    # handle_entity(entity, entity_counter)
-                    # entity = ''
-                    # entity_counter = 0
-                    # continue
 
                 if '-' in token and len(token) > 1:
                     if self.with_stem:
                         token = self.stemmer.stem_term(token)
                     tokenized_text.append(token.lower())
-                    # split_tok = [t.lower() for t in token.split('-')]
-                    # if '' in split_tok:
-                    #     split_tok.remove('')
-                    # tokenized_text += split_tok
-                    ##############################################
-                    # handle_entity(entity, entity_counter)
-                    # entity = ''
-                    # entity_counter = 0
-                    # continue
 
-                # ENTITY AND SMALL_BIG
                 if token.isalpha() and token not in self.stop_words_dict and token.lower() not in self.stop_words_dict and len(token) > 1:
                     if token not in self.stop_words_dict and len(token) > 1:
                         if self.with_stem:
                             token = self.stemmer.stem_term(token)
                         tokenized_text.append(token.lower())
-
-                    # start with big letter
-                    # if token[0].isupper():
-                    #     entity += token + ' '
-                    #     entity_counter += 1
-                    #     continue
-                        # tokenized_text.append(token)
-
-                        # if token not in small_big_dict.keys():
-                        #     small_big_dict[token.lower()] = False
-                        # continue
-
-                    # start with small letter
-                    # else:
-                    #     if token not in self.stop_words_dict and len(token) > 1:
-                    #         if self.with_stem:
-                    #             token = self.stemmer.stem_term(token)
-                    #         tokenized_text.append(token)
-                    #     # if token not in small_big_dict.keys() or not small_big_dict[token.lower()]:
-                    #     #     small_big_dict[token.lower()] = True
-                    #     ##############################################
-                    #     handle_entity(entity, entity_counter)
-                    #     entity = ''
-                    #     entity_counter = 0
-                    #     continue
-
-                # handle_entity(entity, entity_counter)
-                # entity = ''
-                # entity_counter = 0
 
         return tokenized_text, entities_set, small_big_dict
 

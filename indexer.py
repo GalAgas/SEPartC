@@ -10,20 +10,13 @@ class Indexer:
     # You can change the internal implementation as you see fit.
     def __init__(self, config):
         # STRUCTURE OF INDEX
-        # inverted_idx - {term: [df, {tweet_id:[norm_tf,tf, max_tf?, doc_len]}, ,idf]}
-
-
         # inverted_idx_term - {term:[df, {document.tweet_id: [normalized_tf, tf]}, idf]}
-        # tweets_posting - {tweet_id : [document.unique_terms, document.tweet_date_obj, document.max_tf, document.doc_length]}
-
+        # inverted_idx_doc - {tweet_id : [document.unique_terms, document.tweet_date_obj, document.max_tf, document.doc_length]}
 
         self.inverted_idx_term = {}
         self.inverted_idx_doc = {}
 
         self.config = config
-        # self.entities = Counter()
-        # self.small_big = {}
-
 
     # DO NOT MODIFY THIS SIGNATURE
     # You can change the internal implementation as you see fit.
@@ -38,19 +31,8 @@ class Indexer:
         self.inverted_idx_doc[document.tweet_id] = [document.unique_terms, document.tweet_date_obj, document.max_tf,
                                                 document.doc_length]
 
-        # entities as is ->  token
-        # self.entities.update(document.entities_set)
-
         # Go over each term in the doc
         for term in document_dictionary.keys():
-            term_low = term.lower()
-            # small_big
-            # term = lower case
-            # if term_low in document.small_big_letters_dict:
-            #     if term_low not in self.small_big.keys():
-            #         self.small_big[term_low] = document.small_big_letters_dict[term_low]
-            #     else:
-            #         self.small_big[term_low] = self.small_big[term_low] or document.small_big_letters_dict[term_low]
 
             # Update inverted index and posting
             if term not in self.inverted_idx_term.keys():
@@ -63,7 +45,6 @@ class Indexer:
 
             self.inverted_idx_term[term][1][document.tweet_id] = [normalized_tf, tf]
             self.inverted_idx_term[term][1][document.tweet_id] = [normalized_tf, tf]
-
 
     # DO NOT MODIFY THIS SIGNATURE
     # You can change the internal implementation as you see fit.

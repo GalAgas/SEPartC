@@ -3,6 +3,9 @@ from reader import ReadFile
 from parser_module import Parse
 from indexer import Indexer
 from searcher import Searcher
+from ranker import Ranker
+from localMethod import LocalMethod
+import numpy as np
 
 
 # DO NOT CHANGE THE CLASS NAME
@@ -15,7 +18,9 @@ class SearchEngine:
         # self._parser = Parse()
         self._parser = Parse(self._config)
         self._indexer = Indexer(self._config)
+        self._ranker = Ranker()
         self._model = None
+        self._searcher = Searcher(self._parser, self._indexer)
 
     # DO NOT MODIFY THIS SIGNATURE
     # You can change the internal implementation as you see fit.
@@ -37,7 +42,7 @@ class SearchEngine:
             number_of_documents += 1
             # index the document data
             self._indexer.add_new_doc(parsed_document)
-
+        # self._indexer.entities_and_small_big()
         self.clean()
         self._indexer.calculate_idf(self._parser.number_of_documents)
         self._indexer.save_index("idx_bench.pkl")
@@ -80,12 +85,8 @@ class SearchEngine:
         searcher.set_method_type('1')
         return searcher.search(query)
 
-    def write_to_csv(tuple_list):
-        df = pd.DataFrame(tuple_list, columns=['query', 'tweet_id', 'score'])
-        df.to_csv('results.csv')
-
     def clean(self):
-        p = 0.0007
+        p = 0.0008
         num_of_terms = round(p * len(self._indexer.inverted_idx_term))
         sorted_index = sorted(self._indexer.inverted_idx_term.items(), key=lambda item: item[1][0], reverse=True)
 
