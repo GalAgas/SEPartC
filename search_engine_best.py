@@ -83,7 +83,7 @@ class SearchEngine:
         Input:
             fn - file name of pickled index.
         """
-        return self._indexer.load_index(fn)
+        self._indexer.load_index(fn)
 
     # DO NOT MODIFY THIS SIGNATURE
     # You can change the internal implementation as you see fit.
