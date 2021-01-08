@@ -7,7 +7,7 @@ class Wordnet:
     def __init__(self, searcher):
         self.searcher = searcher
         self.p_threshold = 0.25
-        self.p_rel = 1
+        self.p_rel = 0.9
         # for best
         self.expanded_query_dict = None
         self.max_tf_query = None

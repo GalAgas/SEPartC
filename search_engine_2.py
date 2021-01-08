@@ -88,7 +88,6 @@ class SearchEngine:
 
 
         for i in range(num_of_terms):
-            print(sorted_index[i][0])
             del self._indexer.inverted_idx_term[sorted_index[i][0]]
 
         for term in list(self._indexer.inverted_idx_term.keys()):
