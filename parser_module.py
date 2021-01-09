@@ -225,6 +225,8 @@ class Parse:
                     tokenized_text.append(token)
 
                 if '-' in token and len(token) > 1:
+                    if token == '--':
+                        continue
                     if self.with_stem:
                         token = self.stemmer.stem_term(token)
                     tokenized_text.append(token.lower())
